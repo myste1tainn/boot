@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
+REPO="https://github.com/myste1tainn/dotfiles-hammerspoon.git"
+DEST="$HOME/.hammerspoon"
 
-bash "$SCRIPT_DIR/linkfiles.sh"
+if [[ -d "$DEST/.git" ]]; then
+  git -C "$DEST" pull --ff-only
+else
+  git clone "$REPO" "$DEST"
+fi

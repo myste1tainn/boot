@@ -1,0 +1,24 @@
+# Apps & fonts — installed in parallel with Brewfile via a separate tmux pane.
+# Taps are duplicated here so this file is self-contained and can start
+# immediately without waiting for the main Brewfile tap setup.
+tap "nikitabobko/tap"
+
+# Terminal
+cask "wezterm"
+
+# Browsers
+cask "brave-browser"
+
+# Productivity
+cask "alfred"
+cask "dropbox"
+cask "typora"
+cask "obsidian"
+
+# Development
+cask "flutter"  # provides dartls (Dart/Flutter LSP) used by nvim
+
+# Fonts (primary: FantasqueSansM used by wezterm config)
+cask "font-fantasque-sans-mono-nerd-font"
+cask "font-victor-mono-nerd-font"
+cask "font-hack-nerd-font"

@@ -20,6 +20,7 @@ brew "jq"
 brew "yq"
 brew "xq"
 brew "nnn"
+brew "wget"
 
 # Git
 brew "git"
@@ -29,25 +30,27 @@ brew "gh"
 brew "glab"
 brew "gitleaks"
 
-# Terminal multiplexer
+# Terminal multiplexer (installed first by bootstrap before tmux parallelisation)
 brew "tmux"
 brew "tmuxinator"
 
-# Languages & runtimes (Go needed for go install ... in bootstrap)
+# Languages & runtimes
 brew "go"
+brew "node"
+brew "python3"
+brew "ruby"
+brew "poetry"
+brew "maven"
+
+# Build tools — required by mason.nvim (LSP compilation) and nvim-treesitter parsers
+brew "cmake"
+brew "ninja"
 
 # Editor support
 brew "luajit"
 brew "lua-language-server"
 brew "luarocks"
 brew "universal-ctags"
-
-# Languages & runtimes
-brew "node"
-brew "python3"
-brew "ruby"
-brew "poetry"
-brew "maven"
 
 # iOS / Apple dev
 brew "swiftlint"
@@ -81,21 +84,7 @@ brew "prometheus"
 brew "debugpy"
 brew "llvm"
 
-# macOS
+# macOS input & window management (utility casks — small, needed by config setup)
 cask "karabiner-elements"
-
-# Window management
 cask "nikitabobko/tap/aerospace"
 cask "hammerspoon"
-
-# Apps
-cask "alfred"
-cask "dropbox"
-cask "brave-browser"
-cask "wezterm"
-cask "typora"
-
-# Fonts
-cask "font-victor-mono-nerd-font"
-cask "font-hack-nerd-font"
-cask "font-fantasque-sans-mono-nerd-font"

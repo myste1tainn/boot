@@ -13,7 +13,6 @@ ok()   { printf '\033[1;32m  ✓\033[0m %s\n' "$*"; }
 skip() { printf '\033[1;33m  →\033[0m %s (already done)\n' "$*"; }
 
 # ── When piped via curl | bash, clone the repo first then re-exec ─────────────
-# BASH_SOURCE[0] is unset (or "-") when stdin is piped; detect that case.
 SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]:-}")" 2>/dev/null && pwd -P || true)"
 if [[ -z "$SCRIPT_DIR" || ! -f "$SCRIPT_DIR/Brewfile" ]]; then
   log "Cloning $BOOT_REPO → $BOOT_DIR"
@@ -31,18 +30,65 @@ if ! command -v brew &>/dev/null; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-# Ensure brew is on PATH for this session (handles both arm64 and x86_64)
 for _prefix in /opt/homebrew /usr/local; do
   [[ -x "$_prefix/bin/brew" ]] && eval "$($_prefix/bin/brew shellenv)" && break
 done
 
-# ── Brew bundle (the fast part) ───────────────────────────────────────────────
-log "Installing packages via Brewfile..."
-brew bundle --file="$SCRIPT_DIR/Brewfile" --no-lock
-ok "Packages installed"
+# ── Step 1: tmux first (needed to parallelise the rest) ───────────────────────
+log "Installing tmux and tmuxinator..."
+brew install tmux tmuxinator
+ok "tmux ready"
 
-# ── Tool configs ──────────────────────────────────────────────────────────────
-for TOOL in git zsh tmux wezterm aerospace hammperspoon macos; do
+# ── Step 2: Parallel brew installs via tmux panes ─────────────────────────────
+# Pane 0 → Brewfile   (CLI tools, build tools, runtimes — ~fast)
+# Pane 1 → Brewfile.apps (GUI apps, fonts, Flutter — ~slow downloads)
+#
+# Lock files signal completion so the main shell can wait.
+LOCK_FORMULAE="/tmp/.boot-formulae-$$"
+LOCK_APPS="/tmp/.boot-apps-$$"
+SESSION="boot-$$"
+
+CMD_FORMULAE="brew bundle --file='$SCRIPT_DIR/Brewfile' --no-lock 2>&1 \
+  | tee /tmp/brew-formulae.log; touch $LOCK_FORMULAE"
+CMD_APPS="brew bundle --file='$SCRIPT_DIR/Brewfile.apps' --no-lock 2>&1 \
+  | tee /tmp/brew-apps.log; touch $LOCK_APPS"
+
+log "Starting parallel brew installs (tmux session: $SESSION)..."
+tmux new-session  -d -s "$SESSION" -x 220 -y 50 -n "formulae"
+tmux send-keys    -t "$SESSION:formulae" "$CMD_FORMULAE" Enter
+tmux new-window   -t "$SESSION" -n "apps"
+tmux send-keys    -t "$SESSION:apps"     "$CMD_APPS"     Enter
+tmux select-window -t "$SESSION:formulae"
+
+# Background watcher: detaches the tmux client once both panes finish,
+# which causes the foreground attach below to return automatically.
+(
+  while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" ]]; do sleep 2; done
+  sleep 1  # brief pause so the user can see the completion state
+  tmux detach-client -s "$SESSION" 2>/dev/null
+) &
+
+# Show live progress by attaching through /dev/tty.
+# /dev/tty is the real terminal even when stdin is a pipe (curl | bash),
+# so this works in all cases. Falls back to silent wait if no terminal exists
+# (e.g. CI environments).
+if [[ -n "${TMUX:-}" ]]; then
+  # Already inside tmux — switch to the new session rather than nesting
+  tmux switch-client -t "$SESSION" </dev/tty >/dev/tty 2>/dev/tty || true
+elif [[ -e /dev/tty ]]; then
+  # Direct run or curl | bash — attach via /dev/tty
+  tmux attach-session -t "$SESSION" </dev/tty >/dev/tty 2>/dev/tty || true
+else
+  # No terminal at all (CI/non-interactive) — wait silently
+  log "No terminal detected — waiting silently (tail /tmp/brew-formulae.log for progress)"
+  while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" ]]; do sleep 3; done
+fi
+
+rm -f "$LOCK_FORMULAE" "$LOCK_APPS"
+ok "All packages installed"
+
+# ── Step 3: Tool configs (sequential — fast, mostly symlinks) ─────────────────
+for TOOL in git zsh tmux wezterm aerospace hammperspoon macos nvim; do
   SCRIPT="$SCRIPT_DIR/$TOOL/install.sh"
   if [[ -f "$SCRIPT" ]]; then
     log "Configuring $TOOL..."
@@ -98,7 +144,10 @@ SDKROOT=$(xcrun --sdk macosx --show-sdk-path 2>/dev/null) gem install xcode-inst
 ok "Ruby gems installed"
 
 # ── luarocks ──────────────────────────────────────────────────────────────────
+# luafilesystem: general filesystem access for lua scripts
+# jsregexp: required by luasnip for LSP snippet regex transformations
 luarocks install luafilesystem 2>/dev/null || true
+luarocks install jsregexp 2>/dev/null || true
 
 # ─────────────────────────────────────────────────────────────────────────────
 ok "Bootstrap complete! Open a new terminal to apply shell changes."
