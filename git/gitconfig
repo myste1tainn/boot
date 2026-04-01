@@ -1,5 +1,5 @@
 [init]
-    templatedir = /Users/arnon.keereena/.acn-security-tools/git-template
+    # templatedir = ~/.acn-security-tools/git-template  # work-specific, uncomment if present
     defaultBranch = main
 [core]
     editor = sh -c 'SDKROOT="$(xcrun --show-sdk-path)" command nvim "$@"' --

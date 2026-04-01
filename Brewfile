@@ -33,8 +33,8 @@ brew "gitleaks"
 brew "tmux"
 brew "tmuxinator"
 
-# Terminal emulator
-brew "kitty"
+# Languages & runtimes (Go needed for go install ... in bootstrap)
+brew "go"
 
 # Editor support
 brew "luajit"

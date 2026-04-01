@@ -42,7 +42,7 @@ brew bundle --file="$SCRIPT_DIR/Brewfile" --no-lock
 ok "Packages installed"
 
 # ── Tool configs ──────────────────────────────────────────────────────────────
-for TOOL in git zsh tmux kitty aerospace hammperspoon macos; do
+for TOOL in git zsh tmux wezterm aerospace hammperspoon macos; do
   SCRIPT="$SCRIPT_DIR/$TOOL/install.sh"
   if [[ -f "$SCRIPT" ]]; then
     log "Configuring $TOOL..."
@@ -56,7 +56,7 @@ if ! command -v sdk &>/dev/null; then
   curl -s "https://get.sdkman.io" | bash
   # shellcheck source=/dev/null
   source "$HOME/.sdkman/bin/sdkman-init.sh"
-  sdk install java 21-zulu
+  sdk install java  # installs the current default LTS
 else
   skip "SDKMan"
 fi
