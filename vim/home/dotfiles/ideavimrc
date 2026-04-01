@@ -1,4 +1,0 @@
-source ~/.vimrcplug
-source ~/.vimrcmain
-set ideajoin
-set surround
