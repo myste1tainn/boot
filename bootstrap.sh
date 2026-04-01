@@ -149,6 +149,33 @@ ok "Ruby gems installed"
 luarocks install luafilesystem 2>/dev/null || true
 luarocks install jsregexp 2>/dev/null || true
 
+# ── Containers & Kubernetes ───────────────────────────────────────────────────
+# Podman requires a Linux VM on macOS — init and start it if not already done.
+if command -v podman &>/dev/null; then
+  log "Initialising Podman machine..."
+  if ! podman machine list --format '{{.Name}}' 2>/dev/null | grep -q .; then
+    podman machine init
+    ok "Podman machine initialised"
+  else
+    skip "Podman machine"
+  fi
+  if ! podman machine list --format '{{.Running}}' 2>/dev/null | grep -q 'true'; then
+    podman machine start
+    ok "Podman machine started"
+  else
+    skip "Podman machine already running"
+  fi
+fi
+
+# Set minikube to use podman as its driver.
+if command -v minikube &>/dev/null; then
+  log "Configuring minikube driver → podman..."
+  minikube config set driver podman 2>/dev/null
+  ok "minikube driver set to podman"
+fi
+
+# kind needs no machine init — clusters are created on demand via: kind create cluster
+
 # ── Credentials ───────────────────────────────────────────────────────────────
 SECRETS_FILE="$HOME/.config/boot/secrets.env"
 mkdir -p "$(dirname "$SECRETS_FILE")"
