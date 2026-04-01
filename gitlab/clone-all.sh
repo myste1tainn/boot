@@ -21,7 +21,8 @@ set -o nounset # Treat unset variables as an error
 
 GROUP_ID=$1
 
-TOKEN="PRIVATE-TOKEN: REDACTED_GITLAB_TOKEN"
+GITLAB_TOKEN="${GITLAB_TOKEN:?GITLAB_TOKEN is not set — run bootstrap.sh or: export GITLAB_TOKEN=<your_token>}"
+TOKEN="PRIVATE-TOKEN: ${GITLAB_TOKEN}"
 PER_PAGE=50
 URL="https://gitdev.devops.krungthai.com/api/v4/groups/${GROUP_ID}/projects?include_subgroups=true&per_page=${PER_PAGE}"
 

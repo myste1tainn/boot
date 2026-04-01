@@ -11,9 +11,22 @@ cask "brave-browser"
 
 # Productivity
 cask "alfred"
-cask "dropbox"
-cask "typora"
+cask "fantastical"
 cask "obsidian"
+cask "typora"
+cask "cleanmymac"
+
+# Cloud storage
+cask "dropbox"
+cask "google-drive"
+cask "onedrive"
+
+# Communication & AI
+cask "chatgpt"
+cask "claude"
+
+# Diagramming
+cask "drawio"
 
 # Development
 cask "flutter"  # provides dartls (Dart/Flutter LSP) used by nvim

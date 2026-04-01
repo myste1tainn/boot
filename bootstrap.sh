@@ -149,5 +149,21 @@ ok "Ruby gems installed"
 luarocks install luafilesystem 2>/dev/null || true
 luarocks install jsregexp 2>/dev/null || true
 
+# ── Credentials ───────────────────────────────────────────────────────────────
+SECRETS_FILE="$HOME/.config/boot/secrets.env"
+mkdir -p "$(dirname "$SECRETS_FILE")"
+
+log "Setting up credentials (stored in $SECRETS_FILE, not tracked by git)..."
+
+read -r -p "  GitLab token (leave blank to skip): " _gitlab_token
+if [[ -n "$_gitlab_token" ]]; then
+  if grep -q '^export GITLAB_TOKEN=' "$SECRETS_FILE" 2>/dev/null; then
+    sed -i '' "s|^export GITLAB_TOKEN=.*|export GITLAB_TOKEN=\"$_gitlab_token\"|" "$SECRETS_FILE"
+  else
+    echo "export GITLAB_TOKEN=\"$_gitlab_token\"" >> "$SECRETS_FILE"
+  fi
+  ok "GITLAB_TOKEN saved to $SECRETS_FILE"
+fi
+
 # ─────────────────────────────────────────────────────────────────────────────
 ok "Bootstrap complete! Open a new terminal to apply shell changes."
