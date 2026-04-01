@@ -1,0 +1,41 @@
+# BEGIN_KITTY_THEME
+# Gruvbox Material Light Hard
+include current-theme.conf
+# END_KITTY_THEME
+
+# begin_font_config
+font_family VictorMono Nerd Font Bold
+bold_font VictorMono Nerd Font Bold
+italic_font VictorMono Nerd Font Italic Bold
+bold_italic_font VictorMono Nerd Font Italic Bold
+font_size 12.0
+# end_font_config
+
+# begin_tab_bar_config
+tab_title_template "{index}: {title[title.rfind('/')+1:]}"
+tab_bar_edge top
+tab_bar_style powerline
+tab_bar_min_tabs 1
+# end_tab_bar_config
+
+# start_tab_n_window_config
+map kitty_mod+t new_tab_with_cwd
+map kitty_mod+enter new_window_with_cwd
+map kitty_mod+n new_os_window_with_cwd
+map super+t new_tab_with_cwd
+map super+enter new_window_with_cwd
+map super+n new_os_window_with_cwd
+# end_tab_n_window_config
+
+# begin_macos_specific
+macos_option_as_alt true
+map alt+left send_text all \x1b\x62
+map alt+right send_text all \x1b\x66
+map super+left send_text all \x01
+map super+right send_text all \x05
+map super+backspace send_text all \x15
+# end_macos_specific
+
+# begin_pager_settings
+scrollback_pager nvim - "+setl ft=terminal concealcursor=nc"
+# end_pager_settings

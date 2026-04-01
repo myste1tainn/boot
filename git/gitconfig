@@ -1,0 +1,85 @@
+[init]
+    templatedir = /Users/arnon.keereena/.acn-security-tools/git-template
+    defaultBranch = main
+[core]
+    editor = sh -c 'SDKROOT="$(xcrun --show-sdk-path)" command nvim "$@"' --
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true  # use n and N to move between diff sections
+    dark = true      # or light = true, or omit for auto-detection
+[user]
+    name = Arnon Keereena
+    email = arnon.keereena@accenture.com
+[pull]
+    ff = true
+[branch]
+    sort = -committerdate
+    autoSetupMerge = true
+[tag]
+    sort = -committerdate
+[push]
+    autoSetupRemote = true
+[pull]
+    ff = yes
+[merge]
+    tool = diffview
+    conflictStyle = zdiff3
+    algorithm = minimal
+    ff = no
+[mergetool]
+    # get rid of that .orig files
+    keepBackup = false
+[mergetool "diffview"]
+    cmd = nvim -c 'DiffviewOpen --selected-file=\"$MERGED\"' \
+               -c 'DiffviewFocusFiles' \
+               "$MERGED"
+    trustExitCode = true
+[diff]
+    tool = diffview
+[difftool "diffview"]
+    # diffing with diffview.nvim
+    cmd = nvim -n -c "DiffviewOpen" "$MERGE"
+	prompt = false
+[alias]
+    ;; Utility aliases
+    bump-tag = "!/opt/homebrew/bin/bash ~/.boot/git/bump-tag.sh"
+    loc = "!/opt/homebrew/bin/bash ~/.boot/git/loc.sh"
+    contributors = "!/opt/homebrew/bin/bash ~/.boot/git/contributors.sh"
+    contributors-loc = "!/opt/homebrew/bin/bash ~/.boot/git/contributors-loc.sh"
+    logline = log --graph --pretty=format:'%x09%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	count-lines = "! git log --author=\"$1\" --pretty=tformat: --numstat | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf \"added lines: %s, removed lines: %s, total lines: %s\\n\", add, subs, loc }' #"
+    backup = "!/opt/homebrew/bin/bash ~/.boot/git/backup.sh"
+    find-merge = "!/opt/homebrew/bin/bash -c 'commit=$0 && branch=${1:-HEAD} && (git rev-list $commit..$branch --ancestry-path | cat -n; git rev-list $commit..$branch --first-parent | cat -n) | sort -k2 -s | uniq -f1 -d | sort -n | tail -1 | cut -f2'"
+    show-merge = "!/opt/homebrew/bin/bash -c 'merge=$(git find-merge $0 $1) && [ -n \"$merge\" ] && git show $merge'"
+    history-checkedout-branch = "!/opt/homebrew/bin/bash -c 'for i in {1..10}; do git rev-parse --symbolic-full-name @{-$i}; done'"
+
+    ;; Mass operations
+    all-status = "!sh ~/.boot/git/all-status.sh"
+    all-sync = "!sh ~/.boot/git/all-sync.sh"
+    all-checkout = "!sh ~/.boot/git/all-checkout.sh"
+    all-pull = "!sh ~/.boot/git/all-pull.sh"
+    all-merge = "!sh ~/.boot/git/all-merge.sh"
+    all-commit-push = "!sh ~/.boot/git/all-commit-push.sh"
+    all-bump-tag = "!sh ~/.boot/git/all-bump-tag.sh"
+    all-push = "!sh ~/.boot/git/all-push.sh"
+    ; gitlab-pipeline-statuses = "!sh ~/.boot/gitlab/pipeline-statuses.sh"
+    ; gitlab-clone-all = "!sh ~/.boot/gitlab/clone-all.sh"
+    ; gitlab-create-mr = "!sh ~/.boot/gitlab/create-mr.sh"
+
+    ;; Remote repository management
+    mass-git-configure = "!/opt/homebrew/bin/bash ~/.boot/git/mass-git-configure.sh"
+  	clone-group = "!/opt/homebrew/bin/bash ~/.boot/git/clone-group.sh"
+  	pipeline-statuses = "!/opt/homebrew/bin/bash ~/.boot/git/pipeline-statuses.sh"
+    create-mr = "!sh -c 'exec \"$SHELL\" -i ~/.boot/git/gitlab-create-mr.sh'"
+
+#[url "git@github.com:"]
+#    insteadOf = https://github.com/
+[url "ssh://git@gitdev.inno.ktb/"]
+    insteadOf = https://gitdev.inno.ktb/
+[http "https://gitlabp01.devops.vayuktbcs"]
+	sslVerify = false
+; [url "git@gitdev.devops.krungthai.com:"]
+; 	insteadOf = https://gitdev.devops.krungthai.com/
+[credential]
+	helper = osxkeychain

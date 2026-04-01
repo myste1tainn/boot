@@ -1,0 +1,4 @@
+lua <<EOF
+-- vim.api.nvim_exec([[ autocmd BufWritePre (InsertLeave?) <buffer> :lua vim.lsp.buf.formatting_sync(nil,250) ]], false)
+vim.api.nvim_exec([[ autocmd BufWritePre *.go :silent! lua require('go.format').goimport() ]], false)
+EOF

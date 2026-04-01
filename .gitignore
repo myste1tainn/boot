@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# oh-my-zsh is installed fresh by bootstrap; don't bundle it
+zsh/oh-my-zsh/
+
+# Duplicates / clutter inside zsh/
+zsh/aerospace/
+zsh/Base docs/
+zsh/Fonts/
+zsh/dmg-installer.sh
+
+# Large generated/downloadable thesaurus file
+nvim/lua/user/spell/mthesaur.txt
+nvim/lua/user/spell/*.spl
+nvim/lua/user/spell/*.sug
+
+# Icon assets (binary, not needed at runtime)
+icons/
+
+# Kitty conflict copies from Dropbox sync
+kitty/*conflicted*
+kitty/*.bak
+
+# Editor artifacts
+*.swp
+*.swo
+.idea/

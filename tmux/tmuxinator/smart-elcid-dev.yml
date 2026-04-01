@@ -1,0 +1,10 @@
+# /Users/mysteltainn/.config/tmuxinator/start-minikube.yml
+
+name: smart-elcid-dev
+root: ~/
+
+windows:
+  - minikube:
+      layout: main-vertical
+      panes:
+          - minikube start --no-kubernetes --disk-size=40gb && tmuxinator smart-elcid-dockers

@@ -1,0 +1,76 @@
+priority -50
+
+global !p
+import vim
+
+# Tests for the existence of a variable declared by Vim's filetype detection
+# suggesting the type of shell script of the current file
+def testShell(scope, shell):
+	return vim.eval("exists('" + scope + ":is_" + shell + "')")
+
+# Loops over the possible variables, checking for global variables
+# first since they indicate an override by the user.
+def getShell():
+	for scope in ["g", "b"]:
+		for shell in ["bash", "posix", "sh", "kornshell"]:
+			if testShell(scope, shell) == "1":
+				if shell == "kornshell":
+					return "ksh"
+				if shell == "posix":
+					return "sh"
+				return shell
+	return "sh"
+endglobal
+
+##### custom
+snippet ifnprevret "If not equal 0, return code" b
+code=\$?
+if [ "\$code" -ne 0 ]; then
+    return \$code
+fi
+endsnippet
+
+snippet ifnprev "If not equal 0" b
+if [ $? -ne 0 ]; then
+	$1
+fi
+endsnippet
+
+snippet ifprev "If equal 0" b
+if [ $? -eq 0 ]; then
+	$1
+fi
+endsnippet
+
+snippet ifempty "If empty var" b
+if [ -z "$$1" ]; then
+	$2
+fi
+endsnippet
+
+snippet ifnempty "If empty var" b
+if [ ! -z "$$1" ]; then
+	$2
+fi
+endsnippet
+
+snippet iff "If false var" b
+if [ "$$1" = "false" ]; then
+	$2
+fi
+endsnippet
+
+snippet ifelif "If empty var" b
+if [ $1 ]; then
+	$2
+elif [ $3 ]; then
+fi
+endsnippet
+
+snippet ifel "If empty var" b
+if [ $1 ]; then
+	$2
+else
+	$3
+fi
+endsnippet

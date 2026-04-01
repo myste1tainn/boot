@@ -1,0 +1,106 @@
+"" Vim functions
+
+function! AssignVals(...) abort
+    let count = len(a:000)
+
+    let key = a:1 == v:null ? "" : a:1
+
+    let prefix = "this"
+    if count >= 2 
+        let prefix = a:2
+    endif
+
+    let delim = ""
+    if count >= 3
+        let delim = a:3
+    endif
+
+    let assignSymbol = "="
+    if count >= 4
+        let assignSymbol = a:4
+    endif
+
+    if assignSymbol != ":"
+        let assignSymbol = " " . assignSymbol
+    endif
+
+    let search = '\(\s*\)' . key . '\.\(.*\).*' . delim . '.*'
+    let replace = '\1' . key . '.\2' . assignSymbol . ' ' . prefix . '.\2'
+
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end] = getpos("'>")[1:2]
+    let l = line_start
+    for line in getline(line_start, line_end)
+        call setline(l, substitute(line, search, replace, "g"))
+        let l = l + 1
+    endfor
+endfunction
+com! -nargs=* -range AssignVals call AssignVals(<f-args>)
+
+" PrgAssignVals create value assigning from pattern
+" e.g. Considering that you have this piece of code
+" ```
+"   a.prop1 = __anything__
+"   a.prop2 = __anything__
+" ```
+" calling PrgAssign(=, this, :) you'll get
+" ```
+"   a.prop1: this.prop1
+"   a.prop2: this.prop1
+" ```
+function! PrgAssignVals(...) abort
+    let count = len(a:000)
+
+
+    let prefix = a:1 == v:null ? "this" : a:1
+
+    let delim = ":"
+    if count >= 2
+        let delim = a:2
+    endif
+
+    let assignSymbol = delim
+    if count >= 3
+        let assignSymbol = a:3
+    endif
+
+    if assignSymbol != ":"
+        let assignSymbol = " " . assignSymbol
+    endif
+
+    let search = '\(\s*\)\(.*\).*' . delim . '.*'
+    let replace = '\1\2' . assignSymbol . ' ' . prefix . '.\2,'
+
+    let [line_start, column_start] = getpos("'<")[1:2]
+    let [line_end, column_end] = getpos("'>")[1:2]
+    let l = line_start
+    for line in getline(line_start, line_end)
+        call setline(l, substitute(line, search, replace, "g"))
+        let l = l + 1
+    endfor
+endfunction
+com! -nargs=* -range PrgAssignVals <line1>,<line2>call PrgAssignVals(<f-args>)
+
+function! IdeaAssignVals(delim, prefix) abort
+    exec 's/\(\s*\)\(.*\).*' . a:delim . '.*/\1\2: ' . a:prefix . '.\2,/g'
+endfunction
+com! -nargs=* -range IdeaAssignVals <line1>,<line2>call IdeaAssignVals(<f-args>)
+
+function! GoAddJsonTag() abort
+    :s/\(\s*\)\([a-zA-Z0-9]\+\)\(\s*\)\(.*\)/\1\2\3\4 `json:"\l\2"`/g
+endfunction
+com! -nargs=* -range GoAddJsonTag <line1>,<line2>call GoAddJsonTag(<f-args>)
+
+function! GoAppendTag(tag, value)
+    "let tag = a:1
+    "let value = a:2
+    exec ':s/\(.*\)`\(.*\)`/\1 `\2 ' . a:tag . ':"' . a:value . '"`/g'
+endfunction
+com! -nargs=* -range GoAppendTag <line1>,<line2>call GoAppendTag(<f-args>)
+
+function! SwapKV()
+    exec ':s/\([\-/0-9a-zA-Z]*\):\([\-/0-9a-zA-Z]*\)/\2:\1/g'
+endfunction
+com! -range SwapKV call SwapKV()
+
+com! FormatXML :%!python3 -c "import xml.dom.minidom, sys; print(xml.dom.minidom.parse(sys.stdin).toprettyxml())"

@@ -1,0 +1,13 @@
+# /Users/mysteltainn/.config/tmuxinator/local-docker.yml
+
+name: local-docker
+root: ~/Sources/smart-elcid/backend
+
+windows:
+  - local-docker:
+      layout: main-horizontal
+      panes:
+        - eval $(minikube docker-env)
+        - eval $(minikube docker-env)
+        - eval $(minikube docker-env)
+        - eval $(minikube docker-env)

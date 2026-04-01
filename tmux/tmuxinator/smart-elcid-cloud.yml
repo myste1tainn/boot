@@ -1,0 +1,12 @@
+# /Users/mysteltainn/.config/tmuxinator/smart-elcid-cloud.yml
+
+name: smart-elcid-cloud
+root: ~/Sources/smart-elcid/backend
+
+windows:
+  - main:
+      layout: main-horizontal
+      panes:
+        - gcloud compute ssh smart-elcid-coos-sit
+        - gcloud compute ssh smart-elcid-coos-sit
+        - gcloud compute ssh smart-elcid-coos-sit

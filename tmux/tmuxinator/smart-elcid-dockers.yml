@@ -1,0 +1,12 @@
+# /Users/mysteltainn/.config/tmuxinator/smart-elcid-dockers.yml
+
+name: smart-elcid-dockers
+root: ~/Sources/smart-elcid/backend
+
+windows:
+  - main:
+      layout: even-vertical
+      panes:
+        - cd event-stream/kafka; docker compose up || docker compose run kafka
+        - cd edge-server/local; docker compose up
+        - cd database; docker compose up

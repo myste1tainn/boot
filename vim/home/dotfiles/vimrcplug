@@ -1,0 +1,40 @@
+" plugin area
+
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+call plug#begin()
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-fugitive'
+
+Plug 'vim-scripts/bash-support.vim'
+"Plug 'keith/swift.vim'
+" Plug 'vim-syntastic/syntastic'
+"Plug 'mitsuse/autocomplete-swift'
+Plug 'ryanoasis/vim-devicons'
+Plug 'sainnhe/gruvbox-material'
+" Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+
+"" IDE controls
+Plug 'peterrincker/vim-argumentative'
+
+"" color scheme
+Plug 'kaicataldo/material.vim', { 'branch': 'main' }
+Plug 'Dru89/vim-adventurous'
+
+"" case helpers
+Plug 'nicwest/vim-camelsnek'
+
+" Test
+"Plug '~/Downloads/potion', { 'branch': 'master' }
+"Plug '~/Downloads/vimx', { 'branch': 'master' }
+"
+Plug 'NLKNguyen/papercolor-theme'
+Plug 'tomtom/tcomment_vim'
+
+call plug#end()
+

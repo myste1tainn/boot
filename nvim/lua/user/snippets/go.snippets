@@ -1,0 +1,23 @@
+snippet iferp Go lang snipMate test snippets
+	if err != nil {
+		panic(err)
+	}
+
+snippet iferr Go lang snipMate test snippets
+	if err != nil {
+		return err
+	}
+
+snippet iferr2 Go lang snipMate test snippets
+	if err != nil {
+		return nil, err
+	}
+
+snippet iferret Go lang snipMate test snippets
+	if err != nil {
+		return
+	}
+
+snippet jsonprint Go lang snipMate test snippets
+	dat, _ := json.Marshal($1)
+	fmt.Println("-------------- $1", string(dat))
