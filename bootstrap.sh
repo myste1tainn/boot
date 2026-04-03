@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Bootstrap a new macOS machine.
 # Run directly:  bash bootstrap.sh
-# One-shot curl: curl -fsSL https://raw.githubusercontent.com/USER/boot/main/bootstrap.sh | bash
+# One-shot curl: curl -fsSL https://raw.githubusercontent.com/myste1tainn/boot/main/bootstrap.sh | bash
 set -euo pipefail
 
 BOOT_DIR="${BOOT_DIR:-$HOME/.boot}"
-BOOT_REPO="${BOOT_REPO:-https://github.com/arnonkeereena/boot.git}"
+BOOT_REPO="${BOOT_REPO:-https://github.com/myste1tainn/boot.git}"
 
 # ── Logging ──────────────────────────────────────────────────────────────────
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
