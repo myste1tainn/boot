@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+brew install neovim
+
 SCRIPT_DIR="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 REPO="https://github.com/myste1tainn/dotfiles-nvim.git"
 DEST="$HOME/.config/nvim"
