@@ -15,7 +15,6 @@ brew "rename"
 brew "pngpaste"
 brew "htop"
 brew "multitail"
-brew "rsstail"
 brew "jq"
 brew "yq"
 brew "xq"
@@ -25,14 +24,9 @@ brew "wget"
 # Git
 brew "git"
 brew "git-delta"
-brew "gita"
 brew "gh"
 brew "glab"
 brew "gitleaks"
-
-# Terminal multiplexer (installed first by bootstrap before tmux parallelisation)
-brew "tmux"
-brew "tmuxinator"
 
 # Languages & runtimes
 brew "go"
@@ -82,7 +76,6 @@ brew "ffmpeg"
 brew "prometheus"
 
 # Debuggers
-brew "debugpy"
 brew "llvm"
 
 # macOS input & window management (utility casks — small, needed by config setup)

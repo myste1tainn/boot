@@ -15,12 +15,11 @@ cask "fantastical"
 cask "obsidian"
 cask "typora"
 cask "cleanmymac"
-cask "dozer"
+cask "neovide"
 
 # Cloud storage
 cask "dropbox"
 cask "google-drive"
-cask "onedrive"
 
 # Communication & AI
 cask "chatgpt"

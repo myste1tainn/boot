@@ -34,6 +34,8 @@ for _prefix in /opt/homebrew /usr/local; do
   [[ -x "$_prefix/bin/brew" ]] && eval "$($_prefix/bin/brew shellenv)" && break
 done
 
+sudo xcodebuild -license accept
+
 # ── Step 1: tmux first (needed to parallelise the rest) ───────────────────────
 log "Installing tmux and tmuxinator..."
 brew install tmux tmuxinator

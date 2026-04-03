@@ -18,13 +18,12 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH=$PATH:$GOPATH/bin
 
 # Paths
-export PATH=$PATH:~/Downloads/sourcekit-lsp/.build/debug/
 export PATH=$PATH:/usr/local/bin/flutter/bin
 export PATH=$PATH:~/.boot/scripts
 export PATH=$PATH:/usr/local/kafka/bin
 
 # for Apple Silicon M1
-export PATH=$PATH:/opt/homebrew/bin
+export PATH=/opt/homebrew/bin:$PATH
 export PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig:/opt/homebrew/Cellar/openssl@1.1/1.1.1n/lib/pkgconfig
 
 # .bashrc, .zshrc or whatever shell you use
