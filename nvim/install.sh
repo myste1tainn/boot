@@ -16,8 +16,19 @@ else
   git clone "$REPO" "$DEST"
 fi
 
+if command -v pipx &>/dev/null; then
+    echo "pipx is already installed."
+else
+    echo "Installing pipx..."
+    brew install pipx
+fi
+
 # pynvim required by many nvim plugins
-pip3 install --quiet --upgrade pynvim
+if pipx list | grep -q "pynvim"; then
+    pipx install --quiet pynvim
+else
+    pipx upgrade --quiet pynvim
+fi
 
 log() { printf '\033[1;34m  [nvim]\033[0m %s\n' "$*"; }
 

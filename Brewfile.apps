@@ -24,6 +24,7 @@ cask "google-drive"
 # Communication & AI
 cask "chatgpt"
 cask "claude"
+cask "claude-code"
 
 # Diagramming
 cask "drawio"
