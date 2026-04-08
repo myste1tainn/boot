@@ -3,17 +3,20 @@ set -euo pipefail
 
 brew install neovim
 
-SCRIPT_DIR="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
-REPO="https://github.com/myste1tainn/dotfiles-nvim.git"
+SCRIPT_DIR="$(
+    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    pwd -P
+)"
+REPO="git@github.com:myste1tainn/dotfiles-nvim.git"
 DEST="$HOME/.config/nvim"
 
 mkdir -p "$HOME/.config"
 
 # ── Clone or update config ────────────────────────────────────────────────────
 if [[ -d "$DEST/.git" ]]; then
-  git -C "$DEST" pull --ff-only
+    git -C "$DEST" pull --ff-only
 else
-  git clone "$REPO" "$DEST"
+    git clone "$REPO" "$DEST"
 fi
 
 if command -v pipx &>/dev/null; then
@@ -40,9 +43,9 @@ nvim --headless "+Lazy! sync" +qa 2>&1
 # All filetypes in use: dart go groovy java javascript lua python ruby rust starlark xml
 log "Installing treesitter parsers..."
 nvim --headless \
-  -c "Lazy! load nvim-treesitter" \
-  -c "TSInstall! go dart groovy java javascript lua python ruby rust starlark xml" \
-  -c "qa" 2>&1
+    -c "Lazy! load nvim-treesitter" \
+    -c "TSInstall! go dart groovy java javascript lua python ruby rust starlark xml" \
+    -c "qa" 2>&1
 
 # ── 3. Install LSP servers via mason ─────────────────────────────────────────
 # Servers: gopls pyright typescript-language-server rust-analyzer
@@ -50,7 +53,7 @@ nvim --headless \
 # (dart → bundled with Flutter SDK; lua → Homebrew; starlark → no mason package)
 log "Installing LSP servers (mason)..."
 nvim --headless \
-  -c "Lazy! load mason.nvim" \
-  -c "luafile $SCRIPT_DIR/mason_headless.lua" 2>&1
+    -c "Lazy! load mason.nvim" \
+    -c "luafile $SCRIPT_DIR/mason_headless.lua" 2>&1
 
 log "Ready."
