@@ -5,6 +5,7 @@ tap "nikitabobko/tap"
 
 # Terminal
 cask "wezterm"
+cask "cmux"
 
 # Browsers
 cask "brave-browser"

@@ -21,6 +21,12 @@ brew 'xq'
 brew 'nnn'
 brew 'wget'
 brew 'fswatch'
+brew 'eza'
+brew 'bat'
+brew 'grc'
+brew 'colorizer'
+brew 'delta' # syntax highlighting for git diffs and more
+brew 'diff-so-fancy' # better git diffs
 
 # Git
 brew 'git'
@@ -37,6 +43,7 @@ brew 'pipx'
 brew 'poetry'
 brew 'maven'
 brew 'rust'
+brew 'php' # required by some Alfred workflows
 
 # Build tools — required by mason.nvim (LSP compilation) and nvim-treesitter parsers
 brew 'cmake'

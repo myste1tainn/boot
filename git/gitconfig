@@ -3,6 +3,7 @@
     defaultBranch = main
 [core]
     editor = sh -c 'SDKROOT="$(xcrun --show-sdk-path)" command nvim "$@"' --
+    page = bat
 [interactive]
     diffFilter = delta --color-only
 [delta]
