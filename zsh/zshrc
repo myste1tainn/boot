@@ -1,4 +1,3 @@
-
 # Local secrets (credentials, tokens — not tracked in git)
 [[ -f "$HOME/.config/boot/secrets.env" ]] && source "$HOME/.config/boot/secrets.env"
 
@@ -54,6 +53,7 @@ fi
 [[ -f "$(brew --prefix 2>/dev/null)/etc/grc.zsh" ]] && source "$(brew --prefix)/etc/grc.zsh"
 
 # ── Aliases ───────────────────────────────────────────────────────────────────
+alias neovide='open -a Neovide'
 alias vim='nvim'
 alias vimdiff='nvimdiff'
 alias spm="swift package"

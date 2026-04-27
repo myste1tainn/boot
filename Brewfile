@@ -39,6 +39,7 @@ brew 'gitleaks'
 # Languages & runtimes
 brew 'go'
 brew 'node'
+brew 'pnpm'
 brew 'python3'
 brew 'pipx'
 brew 'poetry'
