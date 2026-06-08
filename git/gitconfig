@@ -84,3 +84,5 @@
 ; 	insteadOf = https://gitdev.devops.krungthai.com/
 [credential]
 	helper = osxkeychain
+[credential "https://gitlab.llm-platform-acn.com"]
+	helper = store

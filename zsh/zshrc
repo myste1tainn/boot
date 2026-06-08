@@ -24,11 +24,14 @@ export MINIKUBE_ACTIVE_DOCKERD="minikube"
 # ── PATH (single consolidated export) ────────────────────────────────────────
 export PATH="/opt/homebrew/bin:/usr/local/go/bin:$GOPATH/bin:$HOME/.rd/bin:$HOME/.rvm/bin:$HOME/.local/bin:$HOME/Library/Python/3.9/bin:$HOME/.boot/scripts:/usr/local/bin/flutter/bin:/usr/local/kafka/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:/usr/local/bin:$PATH"
 
-# ── Vim mode ─────────────────────────────────────────────────────────────────
-bindkey -v
-export KEYTIMEOUT=1  # reduce ESC delay to 10ms
-
-# Restore common bindings that vim mode clobbers
+bindkey '^B' backward-char
+bindkey '^F' forward-char
+bindkey '^D' delete-char
+bindkey '^H' backward-delete-char
+bindkey '[B' backward-word
+bindkey '[F' forward-word
+bindkey '[D' kill-word
+bindkey '[H' backward-kill-word
 bindkey '^P' up-line-or-history
 bindkey '^N' down-line-or-history
 bindkey '^A' beginning-of-line
@@ -38,24 +41,145 @@ bindkey '^R' history-incremental-search-backward
 # ── Colorized output ──────────────────────────────────────────────────────────
 # eza (ls replacement)
 if command -v eza &>/dev/null; then
-  alias ls='eza --color=always --group-directories-first'
-  alias ll='eza -lah --color=always --group-directories-first --git'
-  alias tree='eza --tree --color=always'
+    alias ls='eza --color=always --group-directories-first'
+    alias ll='eza -lah --color=always --group-directories-first --git'
+    alias tree='eza --tree --color=always'
+else
+    echo "eza not found; using default ls, ll and tree. Install eza for colorized, git-aware directory listings:"
+    echo ""
+    echo "  brew install eza"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
 fi
 
 # bat (cat/less replacement)
 if command -v bat &>/dev/null; then
-  alias cat='bat --paging=never'
-  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+    alias cat='bat --paging=never'
+    export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+else
+    echo "bat not found; using default cat, Install bat for colorized file"
+    echo ""
+    echo "  brew install bat"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
+fi
+
+if command -v rg &>/dev/null; then
+    alias grep='rg'
+else
+    echo "rg (ripgrep) not found; using default grep. Install rg for faster, colorized searching:"
+    echo ""
+    echo "  brew install ripgrep"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
+fi
+
+if command -v fzf &>/dev/null; then
+    export FZF_DEFAULT_OPTS='--color=bg+:#282c34,fg+:#abb2bf,hl+:#e06c75 --color=bg:#282c34,fg:#abb2bf,hl:#e06c75 --color=info:#61afef --color=pointer:#98c379 --color=marker:#56b6c2'
+else
+    echo "fzf not found; Install fzf for interactive searching and file finding:"
+    echo ""
+    echo "  brew install fzf"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
+fi
+
+if command -v delta &>/dev/null; then
+    export GIT_PAGER='delta --color-only'
+else
+    echo "delta not found; using default git pager. Install delta for colorized, side-by-side git diffs:"
+    echo ""
+    echo "  brew install git-delta"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
+fi
+
+if command -v fd &>/dev/null; then
+    alias fd='fd --color=always'
+else
+    echo "fd not found; using default find. Install fd for faster, colorized file finding:"
+    echo ""
+    echo "  brew install fd"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
+fi
+
+# With both fd and fzf installed, combo them as fdf, for super charged searching and selection, which will  launch neovide for that file by default
+if command -v fzf &>/dev/null; then
+    _fzf_rg() {
+        local preview='bat --style=numbers --color=always --highlight-line {2} --line-range {2}: {1}'
+        fzf --ansi \
+            --delimiter ':' \
+            --preview "$preview" \
+            --preview-window 'right:60%' \
+            --bind 'ctrl-u:preview-page-up,ctrl-d:preview-page-down'
+    }
+
+    _fzf_fd() {
+        fzf --ansi \
+            --preview 'bat --style=numbers --color=always {}' \
+            --preview-window 'right:60%' \
+            --bind 'ctrl-u:preview-page-up,ctrl-d:preview-page-down'
+    }
+
+    _open_file() {
+        local file="$1" open_cmd="$2"
+        if [[ -z "$file" ]]; then return; fi
+
+        if echo "$file" | grep -qE '^.+:[0-9]+:'; then
+            local filepath linenum
+            filepath=$(echo "$file" | cut -d':' -f1)
+            linenum=$(echo "$file" | cut -d':' -f2)
+            $open_cmd +"$linenum" "$filepath"
+        else
+            $open_cmd "$file"
+        fi
+    }
+
+    get_file() {
+        local file name_arg grep_arg path_arg
+        while [[ "$1" == -* ]]; do
+            case "$1" in
+                --glob) name_arg="$2"; shift 2 ;;
+                --grep) grep_arg="$2"; shift 2 ;;
+                *)      shift ;;
+            esac
+        done
+        path_arg="${1:-.}"
+
+        if [[ -n "$name_arg" ]] && [[ -n "$grep_arg" ]]; then
+            file=$(rg "$grep_arg" --glob "$name_arg" "$path_arg" --no-messages --line-number | _fzf_rg)
+        elif [[ -n "$grep_arg" ]]; then
+            file=$(rg "$grep_arg" "$path_arg" --no-messages --line-number | _fzf_rg)
+        elif [[ -n "$name_arg" ]]; then
+            file=$(fd --glob "$name_arg" "$path_arg" | _fzf_fd)
+        else
+            file=$(fd "$path_arg" | _fzf_fd)
+        fi
+        echo "$file"
+    }
+
+    fdf() {
+        _open_file "$(get_file "$@")" neovide
+    }
+
+    fdfn() {
+        _open_file "$(get_file "$@")" nvim
+    }
+else
+    echo "fdf function not available; requires fd, ripgrep, fzf, and bat. Install for a supercharged file finder that previews with bat and opens in nvim:"
+    echo ""
+    echo "  brew install fd ripgrep fzf bat"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
 fi
 
 # grc (generic colorizer for ping, ps, df, curl, etc.)
 [[ -f "$(brew --prefix 2>/dev/null)/etc/grc.zsh" ]] && source "$(brew --prefix)/etc/grc.zsh"
 
 # ── Aliases ───────────────────────────────────────────────────────────────────
-alias neovide='open -a Neovide'
 alias vim='nvim'
-alias vimdiff='nvimdiff'
+alias vimdiff='nvim -d'
 alias spm="swift package"
 alias xcode="open -a /Applications/Xcode.app"
 alias tx=tmuxinator
@@ -105,19 +229,19 @@ add-zsh-hook precmd vcs_info
 
 _vi_symbol="%F{magenta}❯%f"
 zle-keymap-select() {
-  if [[ $KEYMAP == vicmd ]]; then
-    _vi_symbol="%F{yellow}❮%f"
-    echo -ne '\e[2 q'  # block cursor in normal mode
-  else
-    _vi_symbol="%F{magenta}❯%f"
-    echo -ne '\e[6 q'  # beam cursor in insert mode
-  fi
-  zle reset-prompt
+    if [[ $KEYMAP == vicmd ]]; then
+        _vi_symbol="%F{yellow}❮%f"
+        echo -ne '\e[2 q'  # block cursor in normal mode
+    else
+        _vi_symbol="%F{magenta}❯%f"
+        echo -ne '\e[6 q'  # beam cursor in insert mode
+    fi
+    zle reset-prompt
 }
 zle-line-init() {
-  _vi_symbol="%F{magenta}❯%f"
-  echo -ne '\e[6 q'   # beam cursor on each new prompt
-  # do NOT call zle reset-prompt here — causes input to vanish on Ghostty
+    _vi_symbol="%F{magenta}❯%f"
+    echo -ne '\e[6 q'   # beam cursor on each new prompt
+    # do NOT call zle reset-prompt here — causes input to vanish on Ghostty
 }
 zle -N zle-keymap-select
 zle -N zle-line-init
@@ -151,3 +275,11 @@ if [[ -d "$_gcloud_sdk" ]]; then
     bq()     { gcloud; bq "$@"; }
 fi
 unset _gcloud_sdk
+
+# pnpm
+export PNPM_HOME="/Users/arnon.keereena/Library/pnpm"
+case ":$PATH:" in
+    *":$PNPM_HOME:"*) ;;
+    *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

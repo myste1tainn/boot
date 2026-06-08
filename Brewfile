@@ -28,6 +28,7 @@ brew 'colorizer'
 brew 'delta' # syntax highlighting for git diffs and more
 brew 'diff-so-fancy' # better git diffs
 brew 'direnv'
+brew 'telnet'
 
 # Git
 brew 'git'
