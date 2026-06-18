@@ -92,7 +92,7 @@ rm -f "$LOCK_FORMULAE" "$LOCK_APPS"
 ok "All packages installed"
 
 # ── Step 3: Tool configs (sequential — fast, mostly symlinks) ─────────────────
-for TOOL in git zsh tmux wezterm aerospace hammperspoon macos nvim; do
+for TOOL in git zsh tmux wezterm aerospace hammperspoon macos nvim dotclaude; do
     SCRIPT="$SCRIPT_DIR/$TOOL/install.sh"
     if [[ -f "$SCRIPT" ]]; then
         log "Configuring $TOOL..."

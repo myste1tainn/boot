@@ -52,9 +52,17 @@ else
     echo "and restart your terminal or run 'source ~/.zshrc'"
 fi
 
-# bat (cat/less replacement)
+if command -v fd &>/dev/null; then
+    alias find='echo "find is banned, use fd instead for faster, colorized searching:" && fd --color=auto'
+else
+    echo "fd not found; using default find. Install fd for faster, colorized searching:"
+    echo ""
+    echo "  brew install fd"
+    echo ""
+    echo "and restart your terminal or run 'source ~/.zshrc'"
+fi
+
 if command -v bat &>/dev/null; then
-    alias cat='bat --paging=never'
     export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 else
     echo "bat not found; using default cat, Install bat for colorized file"
@@ -65,7 +73,6 @@ else
 fi
 
 if command -v rg &>/dev/null; then
-    alias grep='rg'
 else
     echo "rg (ripgrep) not found; using default grep. Install rg for faster, colorized searching:"
     echo ""
@@ -94,16 +101,6 @@ else
     echo "and restart your terminal or run 'source ~/.zshrc'"
 fi
 
-if command -v fd &>/dev/null; then
-    alias fd='fd --color=always'
-else
-    echo "fd not found; using default find. Install fd for faster, colorized file finding:"
-    echo ""
-    echo "  brew install fd"
-    echo ""
-    echo "and restart your terminal or run 'source ~/.zshrc'"
-fi
-
 # With both fd and fzf installed, combo them as fdf, for super charged searching and selection, which will  launch neovide for that file by default
 if command -v fzf &>/dev/null; then
     _fzf_rg() {
@@ -126,7 +123,7 @@ if command -v fzf &>/dev/null; then
         local file="$1" open_cmd="$2"
         if [[ -z "$file" ]]; then return; fi
 
-        if echo "$file" | grep -qE '^.+:[0-9]+:'; then
+        if echo "$file" | rg '^.+:[0-9]+:'; then
             local filepath linenum
             filepath=$(echo "$file" | cut -d':' -f1)
             linenum=$(echo "$file" | cut -d':' -f2)
@@ -138,13 +135,15 @@ if command -v fzf &>/dev/null; then
 
     get_file() {
         local file name_arg grep_arg path_arg
-        while [[ "$1" == -* ]]; do
+        local -a positional=()
+        while [[ $# -gt 0 ]]; do
             case "$1" in
                 --glob) name_arg="$2"; shift 2 ;;
                 --grep) grep_arg="$2"; shift 2 ;;
-                *)      shift ;;
+                *)      positional+=("$1"); shift ;;
             esac
         done
+        set -- "${positional[@]}"  # restore positional parameters
         path_arg="${1:-.}"
 
         if [[ -n "$name_arg" ]] && [[ -n "$grep_arg" ]]; then
@@ -173,6 +172,14 @@ else
     echo ""
     echo "and restart your terminal or run 'source ~/.zshrc'"
 fi
+
+copy_file() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: copy_file <file>"
+        return 1
+    fi
+    open -R "$(realpath "$1")"
+}
 
 # grc (generic colorizer for ping, ps, df, curl, etc.)
 [[ -f "$(brew --prefix 2>/dev/null)/etc/grc.zsh" ]] && source "$(brew --prefix)/etc/grc.zsh"
