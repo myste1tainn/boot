@@ -1,0 +1,3 @@
+[submodule "dotclaude"]
+	path = dotclaude
+	url = git@github.com:myste1tainn/dotclaude.git
