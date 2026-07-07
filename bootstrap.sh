@@ -21,6 +21,7 @@ if [[ -z "$SCRIPT_DIR" || ! -f "$SCRIPT_DIR/Brewfile" ]]; then
     else
         git clone "$BOOT_REPO" "$BOOT_DIR"
     fi
+    git -C "$BOOT_DIR" submodule update --init --recursive
     exec bash "$BOOT_DIR/bootstrap.sh"
 fi
 
@@ -91,7 +92,12 @@ fi
 rm -f "$LOCK_FORMULAE" "$LOCK_APPS"
 ok "All packages installed"
 
-# ── Step 3: Tool configs (sequential — fast, mostly symlinks) ─────────────────
+# ── Step 3: Submodules ────────────────────────────────────────────────────────
+log "Initialising git submodules..."
+git -C "$SCRIPT_DIR" submodule update --init --recursive
+ok "Submodules ready"
+
+# ── Step 4: Tool configs (sequential — fast, mostly symlinks) ─────────────────
 for TOOL in git zsh tmux wezterm aerospace hammperspoon macos nvim dotclaude; do
     SCRIPT="$SCRIPT_DIR/$TOOL/install.sh"
     if [[ -f "$SCRIPT" ]]; then

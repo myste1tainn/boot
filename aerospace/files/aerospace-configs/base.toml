@@ -193,6 +193,9 @@ run = "layout floating"
 if.app-id = "com.macpaw.CleanMyMac4"
 run = "layout floating"
 
+[[on-window-detected]]
+if.app-id = "com.apple.Passwords"
+run = "layout floating"
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
