@@ -15,10 +15,6 @@ export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 export JRE_HOME=~/.sdkman/candidates/java/current
 export JDTLS_JVM_ARGS="-javaagent:/usr/local/share/lombok/lombok.jar"
 export ENV_FILE=.env.docker-local
-export DOCKER_TLS_VERIFY="1"
-export DOCKER_HOST="tcp://127.0.0.1:44459"
-export DOCKER_CERT_PATH="$HOME/.minikube/certs"
-export MINIKUBE_ACTIVE_DOCKERD="minikube"
 [[ -n $SSH_CONNECTION ]] && export EDITOR='vim' || export EDITOR='nvim'
 
 # ── PATH (single consolidated export) ────────────────────────────────────────
@@ -28,10 +24,25 @@ bindkey '^B' backward-char
 bindkey '^F' forward-char
 bindkey '^D' delete-char
 bindkey '^H' backward-delete-char
-bindkey '[B' backward-word
-bindkey '[F' forward-word
-bindkey '[D' kill-word
-bindkey '[H' backward-kill-word
+# Alt/Option word motions. Each is bound twice so the keystroke works whether
+# or not the terminal delivers Option as Alt/Meta:
+#   \e<key>  what arrives when Option is a real Alt/Meta
+#   <char>   what the macOS US ("ABC") layout composes when it is not,
+#            e.g. Option+b arrives as ∫ rather than as Alt+b
+# Option+e/i/n/u/` are dead keys (they emit nothing on their own), so those
+# have no composed form and need a terminal that sends a real Alt.
+_alt_bindkey() {   # _alt_bindkey <key> <composed-char> <widget>
+    local km
+    for km in emacs viins; do
+        bindkey -M $km "\e$1" "$3"
+        bindkey -M $km "$2"    "$3"
+    done
+}
+_alt_bindkey b '∫' backward-word
+_alt_bindkey f 'ƒ' forward-word
+_alt_bindkey d '∂' kill-word
+_alt_bindkey h '˙' backward-kill-word
+unfunction _alt_bindkey
 bindkey '^P' up-line-or-history
 bindkey '^N' down-line-or-history
 bindkey '^A' beginning-of-line
@@ -270,18 +281,19 @@ else
 fi
 
 # ── Lazy-load gcloud (deferred until first use) ───────────────────────────────
-_gcloud_sdk="$HOME/Downloads/google-cloud-sdk"
-if [[ -d "$_gcloud_sdk" ]]; then
+# NOTE: the path variable must NOT be unset here — the lazy function below reads it
+# at *call* time, so unsetting it at startup made the paths collapse to "/path.zsh.inc".
+GCLOUD_SDK_HOME="$(brew --prefix 2>/dev/null)/share/google-cloud-sdk"
+if [[ -d "$GCLOUD_SDK_HOME" ]]; then
     gcloud() {
         unfunction gcloud gsutil bq
-        source "$_gcloud_sdk/path.zsh.inc"
-        source "$_gcloud_sdk/completion.zsh.inc"
+        source "$GCLOUD_SDK_HOME/path.zsh.inc"
+        source "$GCLOUD_SDK_HOME/completion.zsh.inc"
         gcloud "$@"
     }
     gsutil() { gcloud; gsutil "$@"; }
     bq()     { gcloud; bq "$@"; }
 fi
-unset _gcloud_sdk
 
 # pnpm
 export PNPM_HOME="/Users/arnon.keereena/Library/pnpm"
