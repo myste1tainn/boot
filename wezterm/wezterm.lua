@@ -94,8 +94,18 @@ config.colors = {
 config.default_cwd = wezterm.home_dir
 config.set_environment_variables = {}
 config.automatically_reload_config = true
-config.macos_forward_to_ime_modifier_mask = "ALT|SHIFT"
-config.enable_csi_u_key_encoding = true
+-- Keep ALT out of the IME mask (the WezTerm default). With ALT in it, Option
+-- presses are routed to the macOS IME and compose a character instead of
+-- arriving as Alt, which breaks every Alt binding in zsh/nvim/tmux.
+config.macos_forward_to_ime_modifier_mask = "SHIFT"
+-- Both Option keys act as Alt rather than as the layout's compose modifier.
+-- (Karabiner already maps right_option to left_option, so these agree.)
+config.send_composed_key_when_left_alt_is_pressed = false
+config.send_composed_key_when_right_alt_is_pressed = false
+-- NOT enabling enable_csi_u_key_encoding: it encodes Alt+b as CSI 98;3u rather
+-- than as ESC b, so neither the \eb nor the composed-character binding is
+-- reached. WezTerm's own docs advise against it ("changes the behavior of some
+-- keys in backwards incompatible ways").
 config.keys = {
     -- The default is debug lua, disable for nvim
     { key = "L", mods = "CTRL|SHIFT", action = "DisableDefaultAssignment" },
