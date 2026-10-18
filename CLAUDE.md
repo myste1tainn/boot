@@ -25,7 +25,7 @@ This is a personal **macOS bootstrapping and configuration repository** containi
 
 ### Installation & Setup
 
-- **`install-tools.sh`** — Installs common CLI tools via Homebrew (htop, git, jq, yq, maven, podman, minikube, python, etc.)
+- **`install-tools.sh`** — Installs common CLI tools via Homebrew (htop, git, jq, yq, maven, colima, docker, minikube, python, etc.)
 - **`install-apps.sh`** — Installs macOS applications via DMG files and Homebrew casks (Alfred, Brave, Typora, WezTerm, etc.)
 - **`dmg-installer.sh`** — Helper script for downloading and installing DMG packages
 

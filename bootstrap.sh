@@ -11,6 +11,7 @@ BOOT_REPO="${BOOT_REPO:-https://github.com/myste1tainn/boot.git}"
 log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok() { printf '\033[1;32m  ✓\033[0m %s\n' "$*"; }
 skip() { printf '\033[1;33m  →\033[0m %s (already done)\n' "$*"; }
+warn() { printf '\033[1;33m  !\033[0m %s\n' "$*"; }
 
 # ── When piped via curl | bash, clone the repo first then re-exec ─────────────
 SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]:-}")" 2>/dev/null && pwd -P || true)"
@@ -155,31 +156,58 @@ luarocks install luafilesystem 2>/dev/null || true
 luarocks install jsregexp 2>/dev/null || true
 
 # ── Containers & Kubernetes ───────────────────────────────────────────────────
-# Podman requires a Linux VM on macOS — init and start it if not already done.
-if command -v podman &>/dev/null; then
-    log "Initialising Podman machine..."
-    if ! podman machine list --format '{{.Name}}' 2>/dev/null | grep -q .; then
-        podman machine init
-        ok "Podman machine initialised"
+# Docker on macOS needs a Linux VM. We use Colima (MIT) instead of Docker Desktop
+# so there is no paid-licence exposure. Sizing: 8 CPU / 16 GiB / 100 GiB on a
+# 12-core / 48 GiB host — adjust COLIMA_* below for a smaller machine.
+COLIMA_CPU="${COLIMA_CPU:-8}"
+COLIMA_MEMORY="${COLIMA_MEMORY:-16}"
+COLIMA_DISK="${COLIMA_DISK:-100}"
+
+# The docker CLI finds compose/buildx only via cliPluginsExtraDirs when they are
+# installed by Homebrew rather than Docker Desktop.
+if command -v docker &>/dev/null; then
+    log "Registering Homebrew docker CLI plugins..."
+    mkdir -p "$HOME/.docker"
+    if [ ! -f "$HOME/.docker/config.json" ]; then
+        printf '{\n  "cliPluginsExtraDirs": [\n    "/opt/homebrew/lib/docker/cli-plugins"\n  ]\n}\n' \
+            > "$HOME/.docker/config.json"
+        ok "docker cliPluginsExtraDirs written"
+    elif ! grep -q 'cliPluginsExtraDirs' "$HOME/.docker/config.json"; then
+        warn "~/.docker/config.json exists without cliPluginsExtraDirs — add /opt/homebrew/lib/docker/cli-plugins manually"
     else
-        skip "Podman machine"
-    fi
-    if ! podman machine list --format '{{.Running}}' 2>/dev/null | grep -q 'true'; then
-        podman machine start
-        ok "Podman machine started"
-    else
-        skip "Podman machine already running"
+        skip "docker cliPluginsExtraDirs"
     fi
 fi
 
-# Set minikube to use podman as its driver.
+if command -v colima &>/dev/null; then
+    log "Starting Colima VM..."
+    if ! colima list --json 2>/dev/null | grep -q '"name":"default"'; then
+        colima start --cpu "$COLIMA_CPU" --memory "$COLIMA_MEMORY" --disk "$COLIMA_DISK" \
+            --vm-type vz --vz-rosetta --mount-type virtiofs
+        ok "Colima VM created and started"
+    elif ! colima status &>/dev/null; then
+        colima start
+        ok "Colima VM started"
+    else
+        skip "Colima already running"
+    fi
+fi
+
+# Set minikube to use docker (Colima) as its driver.
 if command -v minikube &>/dev/null; then
-    log "Configuring minikube driver → podman..."
-    minikube config set driver podman 2>/dev/null
-    ok "minikube driver set to podman"
+    log "Configuring minikube driver → docker..."
+    minikube config set driver docker 2>/dev/null
+    ok "minikube driver set to docker"
 fi
 
 # kind needs no machine init — clusters are created on demand via: kind create cluster
+
+# ── Google Cloud SDK ──────────────────────────────────────────────────────────
+if command -v gcloud &>/dev/null; then
+    log "Installing gcloud components..."
+    gcloud components install gke-gcloud-auth-plugin --quiet
+    ok "gke-gcloud-auth-plugin installed"
+fi
 
 # ── Credentials ───────────────────────────────────────────────────────────────
 SECRETS_FILE="$HOME/.config/boot/secrets.env"

@@ -65,8 +65,14 @@ brew 'xcode-build-server'
 brew 'xcbeautify'
 
 # Containers & Kubernetes
-brew 'podman'
-brew 'podman-compose'
+cask 'google-cloud-sdk'
+# Docker CLI + Colima VM backend (NO Docker Desktop — avoids its paid licence).
+# colima provides the Linux VM; the docker CLI/compose/buildx are Apache-2.0 and
+# carry no licence obligation. See docs/runbooks/container-runtime-colima.md
+brew 'colima'
+brew 'docker'
+brew 'docker-compose'
+brew 'docker-buildx'
 brew 'minikube'
 brew 'kind'
 brew 'kustomize'
