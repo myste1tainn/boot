@@ -17,6 +17,7 @@ This is a personal **macOS bootstrapping and configuration repository** containi
 - **`aerospace/`, `hammperspoon/`** — macOS window management and automation
 - **`macos/`** — macOS system settings and preferences
 - **`gitlab/`** — GitLab-specific configurations
+- **`fonts/`** — Nerd Font installation (`install.sh`, discovers every `font-*-nerd-font` cask at run time)
 - **`icons/`** — Icon assets
 - **`keys & licenses/`** — License and key storage (private)
 

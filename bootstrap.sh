@@ -45,30 +45,36 @@ brew link --force bash
 ok "tmux ready"
 
 # ── Step 2: Parallel brew installs via tmux panes ─────────────────────────────
-# Pane 0 → Brewfile   (CLI tools, build tools, runtimes — ~fast)
-# Pane 1 → Brewfile.apps (GUI apps, fonts, Flutter — ~slow downloads)
+# Pane 0 → Brewfile      (CLI tools, build tools, runtimes — ~fast)
+# Pane 1 → Brewfile.apps (GUI apps, Flutter — ~slow downloads)
+# Pane 2 → fonts/install.sh (every Nerd Font cask — many slow downloads)
 #
 # Lock files signal completion so the main shell can wait.
 LOCK_FORMULAE="/tmp/.boot-formulae-$$"
 LOCK_APPS="/tmp/.boot-apps-$$"
+LOCK_FONTS="/tmp/.boot-fonts-$$"
 SESSION="boot-$$"
 
 CMD_FORMULAE="brew bundle --file='$SCRIPT_DIR/Brewfile' --no-lock 2>&1 \
   | tee /tmp/brew-formulae.log; touch $LOCK_FORMULAE"
 CMD_APPS="brew bundle --file='$SCRIPT_DIR/Brewfile.apps' --no-lock 2>&1 \
   | tee /tmp/brew-apps.log; touch $LOCK_APPS"
+CMD_FONTS="bash '$SCRIPT_DIR/fonts/install.sh' 2>&1 \
+  | tee /tmp/brew-fonts.log; touch $LOCK_FONTS"
 
 log "Starting parallel brew installs (tmux session: $SESSION)..."
 tmux new-session -d -s "$SESSION" -x 220 -y 50 -n "formulae"
 tmux send-keys -t "$SESSION:formulae" "$CMD_FORMULAE" Enter
 tmux new-window -t "$SESSION" -n "apps"
 tmux send-keys -t "$SESSION:apps" "$CMD_APPS" Enter
+tmux new-window -t "$SESSION" -n "fonts"
+tmux send-keys -t "$SESSION:fonts" "$CMD_FONTS" Enter
 tmux select-window -t "$SESSION:formulae"
 
-# Background watcher: detaches the tmux client once both panes finish,
+# Background watcher: detaches the tmux client once all panes finish,
 # which causes the foreground attach below to return automatically.
 (
-    while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" ]]; do sleep 2; done
+    while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" || ! -f "$LOCK_FONTS" ]]; do sleep 2; done
     sleep 1 # brief pause so the user can see the completion state
     tmux detach-client -s "$SESSION" 2>/dev/null
 ) &
@@ -86,10 +92,10 @@ elif [[ -e /dev/tty ]]; then
 else
     # No terminal at all (CI/non-interactive) — wait silently
     log "No terminal detected — waiting silently (tail /tmp/brew-formulae.log for progress)"
-    while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" ]]; do sleep 3; done
+    while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" || ! -f "$LOCK_FONTS" ]]; do sleep 3; done
 fi
 
-rm -f "$LOCK_FORMULAE" "$LOCK_APPS"
+rm -f "$LOCK_FORMULAE" "$LOCK_APPS" "$LOCK_FONTS"
 ok "All packages installed"
 
 # ── Step 3: Submodules ────────────────────────────────────────────────────────
