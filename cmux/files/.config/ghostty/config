@@ -1,0 +1,18 @@
+# cmux terminal configuration.
+#
+# cmux is Ghostty-based and reads its terminal settings from this file; the
+# cmux app's own settings live in ../cmux/{settings.json,cmux.json} and in
+# macOS preferences (see ../../README.md in this repo's cmux/ directory).
+#
+# macos-option-as-alt = false keeps Option as the layout's compose modifier, so
+# Option+b types the character the US layout composes for it rather than
+# arriving as Alt+b. That is deliberate — it keeps composed input available —
+# and the Alt bindings in zsh/zshrc, tmux.conf and the nvim config are each
+# bound to both forms so they work either way. See macos/option-key-chars.py.
+macos-option-as-alt = false
+# font-family = FantasqueSansM Nerd Font Mono
+# font-enable-ligatures = true
+# font-family = Hurmit Nerd Font Mono
+font-family = Ubuntu Nerd Font Mono
+font-family = TH Sarabun New
+font-size = 14

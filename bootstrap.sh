@@ -105,7 +105,7 @@ git -C "$SCRIPT_DIR" submodule update --init --recursive
 ok "Submodules ready"
 
 # ── Step 4: Tool configs (sequential — fast, mostly symlinks) ─────────────────
-for TOOL in git zsh tmux wezterm aerospace hammperspoon macos nvim dotclaude; do
+for TOOL in git zsh tmux wezterm cmux aerospace hammperspoon macos nvim dotclaude; do
     SCRIPT="$SCRIPT_DIR/$TOOL/install.sh"
     if [[ -f "$SCRIPT" ]]; then
         log "Configuring $TOOL..."
