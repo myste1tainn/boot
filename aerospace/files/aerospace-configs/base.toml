@@ -197,6 +197,10 @@ run = "layout floating"
 if.app-id = "com.apple.Passwords"
 run = "layout floating"
 
+[[on-window-detected]]
+if.app-id = "net.pulsesecure.Pulse-Secure"
+run = "layout floating"
+
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
