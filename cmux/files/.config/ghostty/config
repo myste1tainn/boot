@@ -10,6 +10,16 @@
 # and the Alt bindings in zsh/zshrc, tmux.conf and the nvim config are each
 # bound to both forms so they work either way. See macos/option-key-chars.py.
 macos-option-as-alt = false
+
+# Exception: the word-motion keys go out as real Meta sequences (ESC + key).
+# Programs that cannot bind the composed characters (Claude Code's prompt,
+# node/readline TUIs) only understand the ESC form; zsh and tmux bind both, so
+# they are unaffected. Cost: ∫ ƒ ∂ ˙ can no longer be typed in cmux.
+# Mirror any change here in zsh/zshrc's _alt_bindkey table.
+keybind = alt+b=esc:b
+keybind = alt+f=esc:f
+keybind = alt+d=esc:d
+keybind = alt+h=esc:h
 # font-family = FantasqueSansM Nerd Font Mono
 # font-enable-ligatures = true
 # font-family = Hurmit Nerd Font Mono
