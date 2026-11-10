@@ -1,6 +1,7 @@
 # Taps
 tap 'mongodb/brew'
 tap 'nikitabobko/tap'
+tap 'acsandmann/tap'
 tap 'derailed/k9s'
 
 # Shell & terminal utilities
@@ -100,5 +101,6 @@ brew 'llvm'
 # macOS input & window management (utility casks — small, needed by config setup)
 cask 'karabiner-elements'
 cask 'nikitabobko/tap/aerospace'
+brew 'acsandmann/tap/rift'
 cask 'hammerspoon'
 cask 'zulu@21' # nvmim only supports Java 21, but this is needed for some LSP servers (e.g. jdtls)

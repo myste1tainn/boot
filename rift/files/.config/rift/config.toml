@@ -1,0 +1,185 @@
+# Rift config: a port of aerospace/files/aerospace-configs/base.toml.
+# Rift is a no-SIP tiling WM with its own virtual workspaces, like AeroSpace.
+# Run only one of the two at a time; switch with rift/switch.sh.
+#
+# Keyboard layouts: Rift resolves letter/punctuation keys through the current
+# input source and rebuilds that map when the source changes, so bindings follow
+# the Dvorak/QWERTY character the same way AeroSpace's key-mapping preset does.
+# No Hammerspoon config rebuild is needed for Rift.
+#
+# Reference: https://acsandmann.github.io/rift-docs/reference/configuration/
+
+[settings]
+animate = false
+
+# AeroSpace manages every space as soon as it runs; Rift's default is the opposite.
+default_disable = false
+
+# AeroSpace: on-focused-monitor-changed = ['move-mouse monitor-lazy-center'].
+# Closest Rift match: move the mouse with focus, no focus-follows-mouse.
+focus_follows_mouse = false
+mouse_follows_focus = true
+mouse_hides_on_focus = false
+
+auto_focus_blacklist = []
+run_on_start = []
+hot_reload = true
+
+[settings.layout]
+# "traditional" is the i3-like container tree, the same model as AeroSpace tiles.
+mode = "traditional"
+window_insertion_point = "next_to_selection"
+
+[settings.layout.traditional]
+equalize_nodes = true
+
+[settings.layout.stack]
+# AeroSpace: accordion-padding = 30
+stack_offset = 30.0
+default_orientation = "perpendicular"
+
+[settings.layout.gaps.outer]
+top = 0
+left = 0
+bottom = 0
+right = 0
+
+[settings.layout.gaps.inner]
+horizontal = 0
+vertical = 0
+
+[settings.ui.menu_bar]
+enabled = true
+show_binding_mode = true
+
+[virtual_workspaces]
+# One numbered list across displays, like AeroSpace's workspaces 1..8.
+mode = "global"
+enabled = true
+default_workspace_count = 8
+workspace_names = ["1", "2", "3", "4", "5", "6", "7", "8"]
+auto_assign_windows = true
+preserve_focus_per_workspace = true
+workspace_auto_back_and_forth = false
+prevent_wrapping = false
+reapply_app_rules_on_title_change = false
+
+# AeroSpace workspace-to-monitor-force-assignment: 1-3 'main', 4-6 'secondary'.
+# Rift has no 'main'/'secondary' patterns; display names come from
+# `rift-cli query displays`. Workspaces are zero-based. With the external monitor
+# unplugged, 4-6 fall back to normal placement on the built-in display.
+workspace_rules = [
+  { workspace = 0, display = "builtin" },
+  { workspace = 1, display = "builtin" },
+  { workspace = 2, display = "builtin" },
+  { workspace = 3, display = ["PHL 499P9", "builtin"] },
+  { workspace = 4, display = ["PHL 499P9", "builtin"] },
+  { workspace = 5, display = ["PHL 499P9", "builtin"] },
+]
+
+# AeroSpace [[on-window-detected]] ... run = "layout floating"
+app_rules = [
+  { app_id = "com.viture.spacewalker", floating = true },
+  { app_id = "org.openvpn.client.app", floating = true },
+  { app_id = "com.apple.finder", floating = true },
+  { app_id = "jp.naver.line.mac", floating = true },
+  { app_id = "com.microsoft.CompanyPortalMac", floating = true },
+  { app_id = "com.macpaw.CleanMyMac4", floating = true },
+  { app_id = "com.apple.Passwords", floating = true },
+  { app_id = "net.pulsesecure.Pulse-Secure", floating = true },
+  { app_id = "com.websense.endpoint", floating = true },
+]
+
+# AeroSpace [mode.main.binding]. A custom [keys] replaces Rift's whole default keymap.
+[keys]
+"Ctrl + Alt + Period" = { binding_mode = "service" }
+
+"Ctrl + Alt + Left" = { move_window_to_display = { selector = "left" } }
+"Ctrl + Alt + Down" = { move_window_to_display = { selector = "down" } }
+"Ctrl + Alt + Up" = { move_window_to_display = { selector = "up" } }
+"Ctrl + Alt + Right" = { move_window_to_display = { selector = "right" } }
+"Ctrl + Alt + H" = { move_window_to_display = { selector = "left" } }
+"Ctrl + Alt + J" = { move_window_to_display = { selector = "down" } }
+"Ctrl + Alt + K" = { move_window_to_display = { selector = "up" } }
+"Ctrl + Alt + L" = { move_window_to_display = { selector = "right" } }
+
+# AeroSpace [mode.service.binding]. Keep every [keys] entry above this table.
+[binding_modes.service]
+# esc = ['reload-config', 'mode main']
+"Escape" = ["reload_config", { binding_mode = "default" }]
+"Enter" = { binding_mode = "default" }
+# r = 'flatten-workspace-tree': no Rift equivalent; balance evens out the splits.
+"R" = "balance"
+# f = 'layout floating tiling'
+"F" = "toggle_window_floating"
+# cmd-backspace = 'close-all-windows-but-current': no Rift equivalent.
+# Rift-only: turn tiling on/off for the current macOS Space.
+"Z" = "toggle_space_activated"
+
+# slash = 'layout tiles horizontal vertical', backslash = 'layout accordion ...'
+"Slash" = "toggle_orientation"
+"Backslash" = "toggle_stack"
+
+"Left" = { move_focus = "left" }
+"Down" = { move_focus = "down" }
+"Up" = { move_focus = "up" }
+"Right" = { move_focus = "right" }
+"H" = { move_focus = "left" }
+"J" = { move_focus = "down" }
+"K" = { move_focus = "up" }
+"L" = { move_focus = "right" }
+
+"Shift + Left" = { move_node = "left" }
+"Shift + Down" = { move_node = "down" }
+"Shift + Up" = { move_node = "up" }
+"Shift + Right" = { move_node = "right" }
+"Shift + H" = { move_node = "left" }
+"Shift + J" = { move_node = "down" }
+"Shift + K" = { move_node = "up" }
+"Shift + L" = { move_node = "right" }
+
+"Ctrl + Left" = { move_window_to_display = { selector = "left" } }
+"Ctrl + Down" = { move_window_to_display = { selector = "down" } }
+"Ctrl + Up" = { move_window_to_display = { selector = "up" } }
+"Ctrl + Right" = { move_window_to_display = { selector = "right" } }
+"Ctrl + H" = { move_window_to_display = { selector = "left" } }
+"Ctrl + J" = { move_window_to_display = { selector = "down" } }
+"Ctrl + K" = { move_window_to_display = { selector = "up" } }
+"Ctrl + L" = { move_window_to_display = { selector = "right" } }
+
+# minus/equal = 'resize smart -50/+50'
+"Minus" = { resize_window_shrink = "smart" }
+"Equal" = { resize_window_grow = "smart" }
+
+# Workspaces are zero-based in Rift: key 1 is workspace 0.
+"1" = { switch_to_workspace = 0 }
+"2" = { switch_to_workspace = 1 }
+"3" = { switch_to_workspace = 2 }
+"4" = { switch_to_workspace = 3 }
+"5" = { switch_to_workspace = 4 }
+"6" = { switch_to_workspace = 5 }
+"7" = { switch_to_workspace = 6 }
+"8" = { switch_to_workspace = 7 }
+"9" = "prev_workspace"
+"0" = "next_workspace"
+
+# shift-N = 'move-node-to-workspace N --focus-follows-window'
+"Shift + 1" = { move_window_to_workspace = { workspace = 0, follow = true } }
+"Shift + 2" = { move_window_to_workspace = { workspace = 1, follow = true } }
+"Shift + 3" = { move_window_to_workspace = { workspace = 2, follow = true } }
+"Shift + 4" = { move_window_to_workspace = { workspace = 3, follow = true } }
+"Shift + 5" = { move_window_to_workspace = { workspace = 4, follow = true } }
+"Shift + 6" = { move_window_to_workspace = { workspace = 5, follow = true } }
+"Shift + 7" = { move_window_to_workspace = { workspace = 6, follow = true } }
+"Shift + 8" = { move_window_to_workspace = { workspace = 7, follow = true } }
+"Shift + 9" = { move_window_to_workspace = { workspace = "prev", follow = true } }
+"Shift + 0" = { move_window_to_workspace = { workspace = "next", follow = true } }
+
+"Alt + Left" = { join_window = "left" }
+"Alt + Down" = { join_window = "down" }
+"Alt + Up" = { join_window = "up" }
+"Alt + Right" = { join_window = "right" }
+"Alt + H" = { join_window = "left" }
+"Alt + J" = { join_window = "down" }
+"Alt + K" = { join_window = "up" }
+"Alt + L" = { join_window = "right" }
