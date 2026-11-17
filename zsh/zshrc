@@ -252,13 +252,13 @@ zle-keymap-select() {
         echo -ne '\e[2 q'  # block cursor in normal mode
     else
         _vi_symbol="%F{magenta}❯%f"
-        echo -ne '\e[6 q'  # beam cursor in insert mode
+        echo -ne '\e[2 q'  # block cursor in insert mode
     fi
     zle reset-prompt
 }
 zle-line-init() {
     _vi_symbol="%F{magenta}❯%f"
-    echo -ne '\e[6 q'   # beam cursor on each new prompt
+    echo -ne '\e[2 q'   # block cursor on each new prompt
     # do NOT call zle reset-prompt here — causes input to vanish on Ghostty
 }
 zle -N zle-keymap-select

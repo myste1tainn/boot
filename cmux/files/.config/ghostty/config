@@ -20,6 +20,12 @@ keybind = alt+b=esc:b
 keybind = alt+f=esc:f
 keybind = alt+d=esc:d
 keybind = alt+h=esc:h
+
+# Block cursor. Ghostty's shell integration otherwise switches the cursor to a
+# bar at the prompt, so no-cursor stops it overriding this setting.
+cursor-style = block
+cursor-style-blink = false
+shell-integration-features = no-cursor
 # font-family = FantasqueSansM Nerd Font Mono
 # font-enable-ligatures = true
 # font-family = Hurmit Nerd Font Mono
