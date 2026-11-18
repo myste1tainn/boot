@@ -34,8 +34,9 @@ window_insertion_point = "next_to_selection"
 equalize_nodes = true
 
 [settings.layout.stack]
-# AeroSpace: accordion-padding = 30
-stack_offset = 30.0
+# AeroSpace: accordion-padding = 30. Rift offsets add up per window (9 windows =
+# 240pt), so keep it small; the stack line tabs show the rest.
+stack_offset = 10.0
 default_orientation = "perpendicular"
 
 [settings.layout.gaps.outer]
@@ -65,16 +66,17 @@ prevent_wrapping = false
 reapply_app_rules_on_title_change = false
 
 # AeroSpace workspace-to-monitor-force-assignment: 1-3 'main', 4-6 'secondary'.
-# Rift has no 'main'/'secondary' patterns; display names come from
-# `rift-cli query displays`. Workspaces are zero-based. With the external monitor
+# Rift has no 'main'/'secondary' patterns, so 4-6 list every external monitor
+# by name (first one connected wins); names come from `rift-cli query displays`.
+# Workspaces are zero-based. With the external monitor
 # unplugged, 4-6 fall back to normal placement on the built-in display.
 workspace_rules = [
   { workspace = 0, display = "builtin" },
   { workspace = 1, display = "builtin" },
   { workspace = 2, display = "builtin" },
-  { workspace = 3, display = ["PHL 499P9", "builtin"] },
-  { workspace = 4, display = ["PHL 499P9", "builtin"] },
-  { workspace = 5, display = ["PHL 499P9", "builtin"] },
+  { workspace = 3, display = ["PHL 499P9", "LG FULL HD", "MSI MP2422C", "S24C31x", "SyncMaster", "builtin"] },
+  { workspace = 4, display = ["PHL 499P9", "LG FULL HD", "MSI MP2422C", "S24C31x", "SyncMaster", "builtin"] },
+  { workspace = 5, display = ["PHL 499P9", "LG FULL HD", "MSI MP2422C", "S24C31x", "SyncMaster", "builtin"] },
 ]
 
 # AeroSpace [[on-window-detected]] ... run = "layout floating"
@@ -102,6 +104,8 @@ app_rules = [
 "Ctrl + Alt + J" = { move_window_to_display = { selector = "down" } }
 "Ctrl + Alt + K" = { move_window_to_display = { selector = "up" } }
 "Ctrl + Alt + L" = { move_window_to_display = { selector = "right" } }
+# Send the window to the other monitor, whatever side it is on.
+"Ctrl + Alt + O" = { exec = ["/bin/bash", "-c", "\"$HOME/.boot/rift/move-to-other-display.sh\""] }
 
 # AeroSpace [mode.service.binding]. Keep every [keys] entry above this table.
 [binding_modes.service]
@@ -112,6 +116,8 @@ app_rules = [
 "R" = "balance"
 # f = 'layout floating tiling'
 "F" = "toggle_window_floating"
+# Toggle the whole workspace between tiles and a full-size stack (AeroSpace accordion).
+"Shift + F" = { exec = ["/bin/bash", "-c", "\"$HOME/.boot/rift/toggle-stack.sh\""] }
 # cmd-backspace = 'close-all-windows-but-current': no Rift equivalent.
 # Rift-only: turn tiling on/off for the current macOS Space.
 "Z" = "toggle_space_activated"
@@ -146,6 +152,7 @@ app_rules = [
 "Ctrl + J" = { move_window_to_display = { selector = "down" } }
 "Ctrl + K" = { move_window_to_display = { selector = "up" } }
 "Ctrl + L" = { move_window_to_display = { selector = "right" } }
+"O" = { exec = ["/bin/bash", "-c", "\"$HOME/.boot/rift/move-to-other-display.sh\""] }
 
 # minus/equal = 'resize smart -50/+50'
 "Minus" = { resize_window_shrink = "smart" }
