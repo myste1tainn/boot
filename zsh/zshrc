@@ -20,6 +20,32 @@ export ENV_FILE=.env.docker-local
 # ── PATH (single consolidated export) ────────────────────────────────────────
 export PATH="/opt/homebrew/bin:/usr/local/go/bin:$GOPATH/bin:$HOME/.rd/bin:$HOME/.rvm/bin:$HOME/.local/bin:$HOME/Library/Python/3.9/bin:$HOME/.boot/scripts:/usr/local/bin/flutter/bin:/usr/local/kafka/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:/usr/local/bin:$PATH"
 
+# ── History ───────────────────────────────────────────────────────────────────
+# Only /etc/zshrc was configuring history (HISTFILE, HISTSIZE=2000,
+# SAVEHIST=1000) and it sets no options at all. With APPEND_HISTORY unset, zsh
+# *rewrites* HISTFILE from its own in-memory list when a shell exits — so in a
+# multi-pane terminal (cmux, tmux) the last shell to quit clobbers everything
+# the other panes wrote. That is why history did not survive a new session.
+# oh-my-zsh used to set this up via OMZL::history.zsh; the zinit migration below
+# only pulls async_prompt/git, so it is configured explicitly here instead.
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=200000               # entries kept in memory per session
+SAVEHIST=200000               # entries kept in $HISTFILE
+setopt APPEND_HISTORY         # add to $HISTFILE, never truncate it
+setopt INC_APPEND_HISTORY     # write each command as it is entered, not at exit
+setopt SHARE_HISTORY          # one history shared live by every running session
+setopt EXTENDED_HISTORY       # record timestamp + duration (SHARE_HISTORY needs
+                              # these to interleave sessions in the right order)
+setopt HIST_IGNORE_DUPS       # drop a command repeated back-to-back
+setopt HIST_IGNORE_SPACE      # a leading space keeps a command out of history
+setopt HIST_REDUCE_BLANKS     # tidy whitespace before storing
+setopt HIST_FIND_NO_DUPS      # ^R walks past duplicates
+setopt HIST_EXPIRE_DUPS_FIRST # when trimming to SAVEHIST, drop dups first
+setopt HIST_VERIFY            # !! and friends expand onto the line, not straight
+                              # into execution
+# To keep each pane's up-arrow private while still persisting everything,
+# swap SHARE_HISTORY for: unsetopt SHARE_HISTORY; setopt INC_APPEND_HISTORY_TIME
+
 bindkey '^B' backward-char
 bindkey '^F' forward-char
 bindkey '^D' delete-char
