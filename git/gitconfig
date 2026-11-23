@@ -86,3 +86,5 @@
 	helper = osxkeychain
 [credential "https://gitlab.llm-platform-acn.com"]
 	helper = store
+[include]
+	path = ~/.boot/dotclaude/git/gitconfig.client
