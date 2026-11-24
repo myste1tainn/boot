@@ -1,0 +1,8 @@
+# CLIs the apps pane needs for its sign-in checklist (gh/glab/gcloud auth login).
+# bootstrap/pane-apps.sh installs these FIRST so the reminders can start without
+# waiting for the other panes. Keep them out of Brewfile and Brewfile.longrun.
+# The long-running pane also uses gcloud (gke-gcloud-auth-plugin) and waits for
+# this file at that one step only.
+brew 'gh'
+brew 'glab'
+cask 'google-cloud-sdk'

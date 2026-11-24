@@ -26,86 +26,134 @@ if [[ -z "$SCRIPT_DIR" || ! -f "$SCRIPT_DIR/Brewfile" ]]; then
     exec bash "$BOOT_DIR/bootstrap.sh"
 fi
 
-# ── Homebrew ─────────────────────────────────────────────────────────────────
+source "$SCRIPT_DIR/bootstrap/lib.sh"
+
+# ── Phase 1: package managers ─────────────────────────────────────────────────
+# Everything the panes install with must exist first: brew, npm/pnpm (node),
+# pip/pipx (python), gem (ruby), go, luarocks and cargo (rustup).
 if ! command -v brew &>/dev/null; then
     log "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
-
 for _prefix in /opt/homebrew /usr/local; do
     [[ -x "$_prefix/bin/brew" ]] && eval "$($_prefix/bin/brew shellenv)" && break
 done
 
 sudo xcodebuild -license accept
 
-# ── Step 1: tmux first (needed to parallelise the rest) ───────────────────────
+log "Updating Homebrew once (panes run with auto-update off to avoid lock fights)..."
+brew update
+# Tap up front so the parallel panes never race to clone the same tap.
+# Recent Homebrew refuses to load formulae from untrusted third-party taps, so
+# trust exactly the taps this repo's Brewfile declares (nothing else).
+grep -E "^tap " "$SCRIPT_DIR/Brewfile" | while read -r _ _t; do
+    _t="${_t//[\"\']/}"
+    brew tap "$_t"
+    brew trust --tap "$_t"
+done
+
+log "Installing package managers..."
+brew install bash ruby node pnpm python3 pipx go luarocks
+brew link --force ruby 2>/dev/null || true
+brew link --force bash 2>/dev/null || true
+# cargo/rustup come from rustup.rs, NOT brew: the brew rustup formula is keg-only,
+# conflicts with the `rust` formula in the Brewfile and no longer ships rustup-init.
+if [[ ! -x "$HOME/.cargo/bin/rustup" ]]; then
+    log "Installing rustup (rustup.rs)..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+        | RUSTUP_INIT_SKIP_PATH_CHECK=yes sh -s -- -y --no-modify-path
+fi
+ok "Package managers ready"
+
+# ── Phase 2: tmux + tmuxinator ────────────────────────────────────────────────
 log "Installing tmux and tmuxinator..."
-brew install tmux tmuxinator ruby bash
-brew link --force ruby
-brew link --force bash
+brew install tmux tmuxinator
 ok "tmux ready"
 
-# ── Step 2: Parallel brew installs via tmux panes ─────────────────────────────
-# Pane 0 → Brewfile      (CLI tools, build tools, runtimes — ~fast)
-# Pane 1 → Brewfile.apps (GUI apps, Flutter — ~slow downloads)
-# Pane 2 → fonts/install.sh (every Nerd Font cask — many slow downloads)
-#
-# Lock files signal completion so the main shell can wait.
-LOCK_FORMULAE="/tmp/.boot-formulae-$$"
-LOCK_APPS="/tmp/.boot-apps-$$"
-LOCK_FONTS="/tmp/.boot-fonts-$$"
+# ── Phase 3: one tmux session, four panes ─────────────────────────────────────
+#   ┌───────────────┬───────────────┐
+#   │ formulae-a    │               │  left 1+2: the Brewfile split half-half
+#   ├───────────────┤   long-run    │  left 3  : GUI apps + fonts, then keeps
+#   │ formulae-b    │  (neovim,     │            reminding you what to configure
+#   ├───────────────┤   gke plugin, │  right   : slow installs; installs its own
+#   │ apps + manual │   toolchains) │            prerequisites, no waiting
+#   └───────────────┴───────────────┘
+# Completion is reported through files in $BOOT_LOCK_DIR holding each pane's
+# exit status.
+export BOOT_LOCK_DIR="/tmp/.boot-$$"
+rm -rf "$BOOT_LOCK_DIR" && mkdir -p "$BOOT_LOCK_DIR"
 SESSION="boot-$$"
+HALF_A="$BOOT_LOCK_DIR/Brewfile.a"
+HALF_B="$BOOT_LOCK_DIR/Brewfile.b"
+bash "$SCRIPT_DIR/bootstrap/split-brewfile.sh" "$SCRIPT_DIR/Brewfile" "$HALF_A" "$HALF_B"
 
-CMD_FORMULAE="brew bundle --file='$SCRIPT_DIR/Brewfile' 2>&1 \
-  | tee /tmp/brew-formulae.log; touch $LOCK_FORMULAE"
-CMD_APPS="brew bundle --file='$SCRIPT_DIR/Brewfile.apps' 2>&1 \
-  | tee /tmp/brew-apps.log; touch $LOCK_APPS"
-CMD_FONTS="bash '$SCRIPT_DIR/fonts/install.sh' 2>&1 \
-  | tee /tmp/brew-fonts.log; touch $LOCK_FONTS"
+P="$SCRIPT_DIR/bootstrap"
+ENVSET="export BOOT_LOCK_DIR='$BOOT_LOCK_DIR';"
 
-log "Starting parallel brew installs (tmux session: $SESSION)..."
-tmux new-session -d -s "$SESSION" -x 220 -y 50 -n "formulae"
-tmux send-keys -t "$SESSION:formulae" "$CMD_FORMULAE" Enter
-tmux new-window -t "$SESSION" -n "apps"
-tmux send-keys -t "$SESSION:apps" "$CMD_APPS" Enter
-tmux new-window -t "$SESSION" -n "fonts"
-tmux send-keys -t "$SESSION:fonts" "$CMD_FONTS" Enter
-tmux select-window -t "$SESSION:formulae"
+tmux new-session -d -s "$SESSION" -x 220 -y 50 -n boot
+# Right pane (the long-running one) takes 50% of the width; the left column is
+# then cut into three equal stacks.
+tmux split-window -h -t "$SESSION:boot.0" -l 50%
+tmux split-window -v -t "$SESSION:boot.0" -l 66%
+tmux split-window -v -t "$SESSION:boot.1" -l 50%
+# Pane indexes now: 0 = left top, 1 = left middle, 2 = left bottom, 3 = right.
+tmux send-keys -t "$SESSION:boot.0" "$ENVSET bash '$P/pane-formulae.sh' formulae-a '$HALF_A'" Enter
+tmux send-keys -t "$SESSION:boot.1" "$ENVSET bash '$P/pane-formulae.sh' formulae-b '$HALF_B'" Enter
+tmux send-keys -t "$SESSION:boot.2" "$ENVSET bash '$P/pane-apps.sh'" Enter
+tmux send-keys -t "$SESSION:boot.3" "$ENVSET bash '$P/pane-longrun.sh'" Enter
+tmux select-pane -t "$SESSION:boot.2"
+log "Started tmux session $SESSION"
 
-# Background watcher: detaches the tmux client once all panes finish,
-# which causes the foreground attach below to return automatically.
+ALL_PANES=(formulae-a formulae-b apps-install apps-manual long)
+all_done() { local n; for n in "${ALL_PANES[@]}"; do [[ -f "$BOOT_LOCK_DIR/$n" ]] || return 1; done; }
+
+# Detach the client once every pane has reported, so the attach below returns.
 (
-    while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" || ! -f "$LOCK_FONTS" ]]; do sleep 2; done
-    sleep 1 # brief pause so the user can see the completion state
+    while ! all_done; do sleep 2; done
+    sleep 1
     tmux detach-client -s "$SESSION" 2>/dev/null
 ) &
 
-# Show live progress by attaching through /dev/tty.
-# /dev/tty is the real terminal even when stdin is a pipe (curl | bash),
-# so this works in all cases. Falls back to silent wait if no terminal exists
-# (e.g. CI environments).
-if [[ -n "${TMUX:-}" ]]; then
-    # Already inside tmux — switch to the new session rather than nesting
-    tmux switch-client -t "$SESSION" </dev/tty >/dev/tty 2>/dev/tty || true
-elif [[ -e /dev/tty ]]; then
-    # Direct run or curl | bash — attach via /dev/tty
-    tmux attach-session -t "$SESSION" </dev/tty >/dev/tty 2>/dev/tty || true
-else
-    # No terminal at all (CI/non-interactive) — wait silently
-    log "No terminal detected — waiting silently (tail /tmp/brew-formulae.log for progress)"
-    while [[ ! -f "$LOCK_FORMULAE" || ! -f "$LOCK_APPS" || ! -f "$LOCK_FONTS" ]]; do sleep 3; done
+# Attach to the session. Redirecting stdin from /dev/tty makes tmux see its tty
+# as "/dev/tty" and refuse ("can't use /dev/tty"), so only redirect when stdin is
+# NOT a terminal (curl | bash), and then point at the real tty device.
+attach_session() {
+    if [[ -n "${TMUX:-}" ]]; then
+        tmux switch-client -t "$SESSION"
+    elif [[ -t 0 && -t 1 ]]; then
+        tmux attach-session -t "$SESSION"
+    else
+        local _tty
+        _tty="$(ps -o tty= -p $$ | tr -d ' ')"
+        [[ -n "$_tty" && "$_tty" != "??" && -c "/dev/$_tty" ]] || return 1
+        tmux attach-session -t "$SESSION" <"/dev/$_tty" >"/dev/$_tty" 2>"/dev/$_tty"
+    fi
+}
+
+if ! attach_session; then
+    warn "Could not attach a terminal. The installs keep running in tmux session $SESSION"
+    warn "  watch them with:  tmux attach -t $SESSION   (answer any password prompt there)"
 fi
+# switch-client and a failed attach return immediately; wait for the panes.
+# A manual detach also lands here, which is fine — it just keeps waiting.
+while ! all_done; do sleep 3; done
 
-rm -f "$LOCK_FORMULAE" "$LOCK_APPS" "$LOCK_FONTS"
-ok "All packages installed"
+# ── Report real pane results ──────────────────────────────────────────────────
+_bad=0
+for _n in "${ALL_PANES[@]}"; do
+    _rc="$(cat "$BOOT_LOCK_DIR/$_n")"
+    if [[ "$_rc" == "0" ]]; then ok "$_n"; else fail "$_n (exit $_rc)"; _bad=1; fi
+done
+rm -rf "$BOOT_LOCK_DIR"
+[[ $_bad -eq 0 ]] || warn "Some panes failed — logs: /tmp/brew-*.log. Continuing to config."
 
-# ── Step 3: Submodules ────────────────────────────────────────────────────────
+# ── Phase 4: submodules and configs (fast, mostly symlinks) ───────────────────
 log "Initialising git submodules..."
 git -C "$SCRIPT_DIR" submodule update --init --recursive
 ok "Submodules ready"
 
-# ── Step 4: Tool configs (sequential — fast, mostly symlinks) ─────────────────
-for TOOL in git zsh tmux wezterm cmux aerospace rift hammperspoon macos nvim dotclaude; do
+# nvim is configured by the long-running pane, not here.
+for TOOL in git zsh tmux wezterm cmux aerospace rift hammperspoon alfred neovide macos dotclaude; do
     SCRIPT="$SCRIPT_DIR/$TOOL/install.sh"
     if [[ -f "$SCRIPT" ]]; then
         log "Configuring $TOOL..."
@@ -113,106 +161,9 @@ for TOOL in git zsh tmux wezterm cmux aerospace rift hammperspoon macos nvim dot
     fi
 done
 
-# ── Rust ──────────────────────────────────────────────────────────────────────
-if ! command -v rustup &>/dev/null; then
-    log "Installing Rust..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-fi
-# shellcheck source=/dev/null
-[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
-rustup component add rust-analyzer rustfmt 2>/dev/null || true
-cargo install --locked tree-sitter-cli 2>/dev/null || true
-ok "Rust ready"
-
-# ── Go tools ─────────────────────────────────────────────────────────────────
-if command -v go &>/dev/null; then
-    log "Installing Go tools..."
-    go install github.com/go-delve/delve/cmd/dlv@latest
-    go install gotest.tools/gotestsum@latest
-    ok "Go tools installed"
-fi
-
-# ── npm globals ───────────────────────────────────────────────────────────────
-log "Installing npm globals..."
-npm install -g yarn prettier @prettier/plugin-xml
-yarn global add prisma dotenv-cli
-ok "npm globals installed"
-
-# ── Python packages ───────────────────────────────────────────────────────────
-log "Installing Python packages..."
-# Homebrew's Python is externally managed (PEP 668): CLI tools go through pipx,
-# the diagrams library into the user site-packages.
-for _pkg in virtualenv pymobiledevice3; do
-    pipx list --short 2>/dev/null | grep -q "^$_pkg " && pipx upgrade --quiet "$_pkg" || pipx install --quiet "$_pkg"
-done
-python3 -m pip install --quiet --upgrade --user --break-system-packages diagrams
-ok "Python packages installed"
-
-# ── Ruby gems ─────────────────────────────────────────────────────────────────
-log "Installing Ruby gems..."
-gem install xcodeproj
-SDKROOT=$(xcrun --sdk macosx --show-sdk-path 2>/dev/null) gem install xcode-install || true
-ok "Ruby gems installed"
-
-# ── luarocks ──────────────────────────────────────────────────────────────────
-# luafilesystem: general filesystem access for lua scripts
-# jsregexp: required by luasnip for LSP snippet regex transformations
-luarocks install luafilesystem 2>/dev/null || true
-luarocks install jsregexp 2>/dev/null || true
-
-# ── Containers & Kubernetes ───────────────────────────────────────────────────
-# Docker on macOS needs a Linux VM. We use Colima (MIT) instead of Docker Desktop
-# so there is no paid-licence exposure. Sizing: 8 CPU / 16 GiB / 100 GiB on a
-# 12-core / 48 GiB host — adjust COLIMA_* below for a smaller machine.
-COLIMA_CPU="${COLIMA_CPU:-8}"
-COLIMA_MEMORY="${COLIMA_MEMORY:-16}"
-COLIMA_DISK="${COLIMA_DISK:-100}"
-
-# The docker CLI finds compose/buildx only via cliPluginsExtraDirs when they are
-# installed by Homebrew rather than Docker Desktop.
-if command -v docker &>/dev/null; then
-    log "Registering Homebrew docker CLI plugins..."
-    mkdir -p "$HOME/.docker"
-    if [ ! -f "$HOME/.docker/config.json" ]; then
-        printf '{\n  "cliPluginsExtraDirs": [\n    "/opt/homebrew/lib/docker/cli-plugins"\n  ]\n}\n' \
-            > "$HOME/.docker/config.json"
-        ok "docker cliPluginsExtraDirs written"
-    elif ! grep -q 'cliPluginsExtraDirs' "$HOME/.docker/config.json"; then
-        warn "~/.docker/config.json exists without cliPluginsExtraDirs — add /opt/homebrew/lib/docker/cli-plugins manually"
-    else
-        skip "docker cliPluginsExtraDirs"
-    fi
-fi
-
-if command -v colima &>/dev/null; then
-    log "Starting Colima VM..."
-    if ! colima list --json 2>/dev/null | grep -q '"name":"default"'; then
-        colima start --cpu "$COLIMA_CPU" --memory "$COLIMA_MEMORY" --disk "$COLIMA_DISK" \
-            --vm-type vz --vz-rosetta --mount-type virtiofs
-        ok "Colima VM created and started"
-    elif ! colima status &>/dev/null; then
-        colima start
-        ok "Colima VM started"
-    else
-        skip "Colima already running"
-    fi
-fi
-
-# Set minikube to use docker (Colima) as its driver.
-if command -v minikube &>/dev/null; then
-    log "Configuring minikube driver → docker..."
-    minikube config set driver docker 2>/dev/null
-    ok "minikube driver set to docker"
-fi
-
-# kind needs no machine init — clusters are created on demand via: kind create cluster
-
-# ── Google Cloud SDK ──────────────────────────────────────────────────────────
-if command -v gcloud &>/dev/null; then
-    log "Installing gcloud components..."
-    gcloud components install gke-gcloud-auth-plugin --quiet
-    ok "gke-gcloud-auth-plugin installed"
-fi
+# Start the window/keyboard tools and make them launch at login.
+log "Starting Hammerspoon, Rift, Karabiner-Elements..."
+bash "$SCRIPT_DIR/bootstrap/start-apps.sh" || warn "start-apps.sh reported problems"
 
 # ── Credentials ───────────────────────────────────────────────────────────────
 SECRETS_FILE="$HOME/.config/boot/secrets.env"

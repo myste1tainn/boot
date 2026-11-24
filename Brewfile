@@ -25,7 +25,6 @@ brew 'fswatch'
 brew 'eza'
 brew 'bat'
 brew 'grc'
-brew 'colorizer'
 brew 'delta' # syntax highlighting for git diffs and more
 brew 'diff-so-fancy' # better git diffs
 brew 'direnv'
@@ -34,8 +33,6 @@ brew 'telnet'
 # Git
 brew 'git'
 brew 'git-delta'
-brew 'gh'
-brew 'glab'
 brew 'gitleaks'
 
 # Languages & runtimes
@@ -50,15 +47,12 @@ brew 'rust'
 brew 'php' # required by some Alfred workflows
 
 # Build tools — required by mason.nvim (LSP compilation) and nvim-treesitter parsers
-brew 'cmake'
-brew 'ninja'
 
 # Editor support
 brew 'luajit'
 brew 'lua-language-server'
 brew 'luarocks'
 brew 'universal-ctags'
-brew 'tree-sitter-cli'
 
 # iOS / Apple dev
 brew 'swiftlint'
@@ -66,15 +60,9 @@ brew 'xcode-build-server'
 brew 'xcbeautify'
 
 # Containers & Kubernetes
-cask 'google-cloud-sdk'
 # Docker CLI + Colima VM backend (NO Docker Desktop — avoids its paid licence).
 # colima provides the Linux VM; the docker CLI/compose/buildx are Apache-2.0 and
 # carry no licence obligation. See docs/runbooks/container-runtime-colima.md
-brew 'colima'
-brew 'docker'
-brew 'docker-compose'
-brew 'docker-buildx'
-brew 'minikube'
 brew 'kind'
 brew 'kustomize'
 brew 'kompose'
@@ -87,6 +75,9 @@ brew 'pgcli'
 brew 'mycli'
 brew 'pgformatter'
 brew 'mongodb/brew/mongodb-community'
+
+# VPN (CLI: wg, wg-quick). The WireGuard GUI is Mac App Store only — no cask.
+brew 'wireguard-tools'
 
 # Media
 brew 'imagemagick'
@@ -103,4 +94,3 @@ cask 'karabiner-elements'
 cask 'nikitabobko/tap/aerospace'
 brew 'acsandmann/tap/rift'
 cask 'hammerspoon'
-cask 'zulu@21' # nvmim only supports Java 21, but this is needed for some LSP servers (e.g. jdtls)

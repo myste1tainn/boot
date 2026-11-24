@@ -1,0 +1,19 @@
+# Prerequisites of the long-running pane (bootstrap/pane-longrun.sh). That pane
+# installs these itself and starts immediately, in parallel with the two
+# Brewfile panes. Keep them OUT of Brewfile, or two panes race for the same
+# package. Package managers (node, go, pipx, ruby, luarocks, rustup) are already
+# installed in phase 1 of bootstrap.sh.
+
+# Neovim: plugin sync, treesitter parsers and mason LSP builds
+brew 'neovim'
+brew 'cmake'
+brew 'ninja'
+brew 'tree-sitter-cli'
+cask 'zulu@21' # nvim only supports Java 21; jdtls needs it
+
+# Containers: Colima VM, then the minikube driver
+brew 'colima'
+brew 'docker'
+brew 'docker-compose'
+brew 'docker-buildx'
+brew 'minikube'
