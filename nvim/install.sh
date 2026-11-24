@@ -33,6 +33,14 @@ else
     pipx install --quiet pynvim
 fi
 
+# Lua 5.1 rocks that plugins require at runtime (avante.nvim needs mega.cmdparse).
+# init.lua adds ~/.luarocks/share/lua/5.1 to package.path, so install them there.
+if command -v luarocks &>/dev/null; then
+    luarocks --lua-version 5.1 --local install mega.cmdparse
+else
+    echo "luarocks missing (brew install luarocks) - avante.nvim will fail to load" >&2
+fi
+
 log() { printf '\033[1;34m  [nvim]\033[0m %s\n' "$*"; }
 
 # ── 1. Install / sync all lazy.nvim plugins ───────────────────────────────────

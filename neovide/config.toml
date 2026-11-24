@@ -1,0 +1,3 @@
+# Neovide briefly attaches ext_messages/ext_cmdline to capture startup errors, which makes
+# noice.nvim refuse to start (no centred ":" cmdline, no popups). Turn that capture off.
+startup-message-capture = false

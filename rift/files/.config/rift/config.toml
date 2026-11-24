@@ -90,8 +90,10 @@ app_rules = [
   { app_id = "com.microsoft.CompanyPortalMac", floating = true },
   { app_id = "com.macpaw.CleanMyMac4", floating = true },
   { app_id = "com.apple.Passwords", floating = true },
+  { app_id = "com.apple.systempreferences", floating = true },
   { app_id = "net.pulsesecure.Pulse-Secure", floating = true },
   { app_id = "com.websense.endpoint", floating = true },
+  { app_id = "com.google.Chrome", title_regex = "^LINE - ", floating = true }, # LINE Chrome extension window
 ]
 
 # AeroSpace [mode.main.binding]. A custom [keys] replaces Rift's whole default keymap.
