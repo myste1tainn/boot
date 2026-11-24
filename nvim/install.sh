@@ -28,9 +28,9 @@ fi
 
 # pynvim required by many nvim plugins
 if pipx list | grep -q "pynvim"; then
-    pipx install --quiet pynvim
-else
     pipx upgrade --quiet pynvim
+else
+    pipx install --quiet pynvim
 fi
 
 log() { printf '\033[1;34m  [nvim]\033[0m %s\n' "$*"; }

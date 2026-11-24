@@ -56,9 +56,9 @@ LOCK_APPS="/tmp/.boot-apps-$$"
 LOCK_FONTS="/tmp/.boot-fonts-$$"
 SESSION="boot-$$"
 
-CMD_FORMULAE="brew bundle --file='$SCRIPT_DIR/Brewfile' --no-lock 2>&1 \
+CMD_FORMULAE="brew bundle --file='$SCRIPT_DIR/Brewfile' 2>&1 \
   | tee /tmp/brew-formulae.log; touch $LOCK_FORMULAE"
-CMD_APPS="brew bundle --file='$SCRIPT_DIR/Brewfile.apps' --no-lock 2>&1 \
+CMD_APPS="brew bundle --file='$SCRIPT_DIR/Brewfile.apps' 2>&1 \
   | tee /tmp/brew-apps.log; touch $LOCK_APPS"
 CMD_FONTS="bash '$SCRIPT_DIR/fonts/install.sh' 2>&1 \
   | tee /tmp/brew-fonts.log; touch $LOCK_FONTS"
@@ -140,7 +140,12 @@ ok "npm globals installed"
 
 # ── Python packages ───────────────────────────────────────────────────────────
 log "Installing Python packages..."
-pip3 install --quiet --upgrade diagrams virtualenv pymobiledevice3
+# Homebrew's Python is externally managed (PEP 668): CLI tools go through pipx,
+# the diagrams library into the user site-packages.
+for _pkg in virtualenv pymobiledevice3; do
+    pipx list --short 2>/dev/null | grep -q "^$_pkg " && pipx upgrade --quiet "$_pkg" || pipx install --quiet "$_pkg"
+done
+python3 -m pip install --quiet --upgrade --user --break-system-packages diagrams
 ok "Python packages installed"
 
 # ── Ruby gems ─────────────────────────────────────────────────────────────────
