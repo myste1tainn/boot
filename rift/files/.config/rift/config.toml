@@ -10,7 +10,7 @@
 # Reference: https://acsandmann.github.io/rift-docs/reference/configuration/
 
 [settings]
-animate = false
+animate = true
 
 # AeroSpace manages every space as soon as it runs; Rift's default is the opposite.
 default_disable = false
