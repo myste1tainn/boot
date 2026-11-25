@@ -219,7 +219,20 @@ copy_file() {
 }
 
 # grc (generic colorizer for ping, ps, df, curl, etc.)
-[[ -f "$(brew --prefix 2>/dev/null)/etc/grc.zsh" ]] && source "$(brew --prefix)/etc/grc.zsh"
+# Homebrew prefix: never shell out to `brew --prefix` (~50ms per call). Login shells get
+# HOMEBREW_PREFIX from `brew shellenv` in .zprofile; fall back to the Apple-silicon path.
+: ${HOMEBREW_PREFIX:=/opt/homebrew}
+# Deferred: grc.zsh forks `tty -s` and probes ~70 commands (~35ms). Wrappers are only needed
+# once you start typing, so define them from a one-shot precmd hook after the first prompt.
+if [[ -f "$HOMEBREW_PREFIX/etc/grc.zsh" ]]; then
+    _grc_defer() {
+        add-zsh-hook -d precmd _grc_defer
+        unfunction _grc_defer
+        source "$HOMEBREW_PREFIX/etc/grc.zsh"
+    }
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _grc_defer
+fi
 
 # ── Aliases ───────────────────────────────────────────────────────────────────
 alias vim='nvim'
@@ -249,6 +262,9 @@ source "$ZINIT_HOME/zinit.zsh"
 # Sync: oh-my-zsh libs + git aliases
 zinit snippet OMZL::async_prompt.zsh
 zinit snippet OMZL::git.zsh
+
+# git aliases: deferred (the plugin runs `git --version` at load, ~10ms)
+zinit ice wait lucid
 zinit snippet OMZP::git
 
 # Turbo (deferred): loaded after prompt appears — no perceived cost
@@ -299,17 +315,20 @@ bindkey -M viins '^?' backward-delete-char   # delete key / backspace in most te
 PROMPT='%F{cyan}%~%f${vcs_info_msg_0_} ${_vi_symbol} '
 
 # ── Completion (cached — regenerates at most once per day) ───────────────────
+# Always take the fast path (-C: no compaudit). When the dump is >24h old, rebuild it in a
+# background subshell so the *next* shell picks up new completions without this one waiting.
 autoload -Uz compinit
-if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
-    compinit
-else
-    compinit -C  # skip security check when cache is fresh
+_zcd="${ZDOTDIR:-$HOME}/.zcompdump"
+compinit -C -d "$_zcd"
+if [[ -n $_zcd(#qN.mh+24) ]]; then
+    ( compinit -d "$_zcd.new" && mv -f "$_zcd.new" "$_zcd" ) &>/dev/null &!
 fi
+unset _zcd
 
 # ── Lazy-load gcloud (deferred until first use) ───────────────────────────────
 # NOTE: the path variable must NOT be unset here — the lazy function below reads it
 # at *call* time, so unsetting it at startup made the paths collapse to "/path.zsh.inc".
-GCLOUD_SDK_HOME="$(brew --prefix 2>/dev/null)/share/google-cloud-sdk"
+GCLOUD_SDK_HOME="$HOMEBREW_PREFIX/share/google-cloud-sdk"
 if [[ -d "$GCLOUD_SDK_HOME" ]]; then
     gcloud() {
         unfunction gcloud gsutil bq
